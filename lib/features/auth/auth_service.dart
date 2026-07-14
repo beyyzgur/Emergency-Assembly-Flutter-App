@@ -6,19 +6,25 @@ final authServiceProvider = Provider((ref) => AuthService());
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
+
+  AuthService() {
+    _initializeGoogleSignIn();
+  }
+
+  Future<void> _initializeGoogleSignIn() async {
+    await _googleSignIn.initialize();
+  }
 
   Future<void> signInWithGoogle() async {
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
       
       if (googleUser != null) {
         final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
         
-        if (googleAuth.accessToken != null && googleAuth.idToken != null) {
+        if (googleAuth.idToken != null) {
           final AuthCredential credential = GoogleAuthProvider.credential(
-            accessToken: googleAuth.accessToken!,
             idToken: googleAuth.idToken!,
           );
 
