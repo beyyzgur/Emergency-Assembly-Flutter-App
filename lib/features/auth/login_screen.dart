@@ -13,7 +13,6 @@ class LoginScreen extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text("Hoş geldin!"),
-            // İleride Google ve Apple butonlarını buraya ekleyeceğiz.
           ],
         ),
       ),
