@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyBK6rdDm0iDMu7MJ7PV0G3EAP9kuK5foQE</string>
+	<key>GCM_SENDER_ID</key>
+	<string>948237459792</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.basarsoft.emergencyAssemblyApp</string>
+	<key>PROJECT_ID</key>
+	<string>emergencyassemblyapp</string>
+	<key>STORAGE_BUCKET</key>
+	<string>emergencyassemblyapp.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:948237459792:ios:029adbb53097186081cc55</string>
+</dict>
+</plist>
