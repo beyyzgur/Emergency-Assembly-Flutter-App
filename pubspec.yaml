@@ -36,7 +36,7 @@ dependencies:
   flutter_riverpod: ^2.5.1
 
   # Routing
-  go_router: ^14.0.0
+  go_router: ^17.3.0
 
   # Harita
   flutter_map: ^7.0.0
