@@ -8,31 +8,20 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
 
-  AuthService() {
-    _initializeGoogleSignIn();
-  }
-
-  Future<void> _initializeGoogleSignIn() async {
-    await _googleSignIn.initialize();
-  }
-
   Future<void> signInWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
-      
-      if (googleUser != null) {
-        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-        
-        if (googleAuth.idToken != null) {
-          final AuthCredential credential = GoogleAuthProvider.credential(
-            idToken: googleAuth.idToken!,
-          );
+    final GoogleSignInAccount? googleUser = await _googleSignIn.authenticate();
 
-          await _auth.signInWithCredential(credential);
-        }
-      }
-    } catch (e) {
-      print(e);
+    if (googleUser != null) {
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        idToken: googleAuth.idToken!,
+      );
+
+      await _auth.signInWithCredential(credential);
+    } else {
+      throw Exception("Giriş işlemi iptal edildi.");
     }
   }
 
