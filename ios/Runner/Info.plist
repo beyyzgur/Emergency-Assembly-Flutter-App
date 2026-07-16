@@ -81,5 +81,9 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Afet anında size en yakın güvenli toplanma alanını bulabilmemiz için konum izninize ihtiyacımız var.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Afet anında size en yakın güvenli toplanma alanını bulabilmemiz için konum izninize ihtiyacımız var.</string>
 </dict>
 </plist>
