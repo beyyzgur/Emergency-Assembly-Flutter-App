@@ -17,7 +17,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/login',
     redirect: (BuildContext context, GoRouterState state) {
-      // Durum hala yükleniyorsa bekle
       if (authState.isLoading) {
         return null;
       }
