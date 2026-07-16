@@ -1,9 +1,9 @@
-// lib/routing/app_router.dart
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/needs/presentation/needs_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/map/presentation/map_screen.dart';
 
@@ -26,7 +26,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       if (isLoggedIn) {
         if (isLoggingIn) {
-          return '/map';
+          return '/needs';
         }
       } else {
         if (!isLoggingIn) {
@@ -39,6 +39,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
+      GoRoute(path: '/needs', builder: (context, state) => const NeedsScreen()),
     ],
   );
 });
