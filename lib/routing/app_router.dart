@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 
 import '../features/needs/presentation/needs_screen.dart';
 import '../features/auth/presentation/login_screen.dart';
-import '../features/map/presentation/map_screen.dart';
 
 final authStateProvider = StreamProvider<User?>((ref) {
   return FirebaseAuth.instance.authStateChanges();
@@ -38,7 +37,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
-      GoRoute(path: '/map', builder: (context, state) => const MapScreen()),
       GoRoute(path: '/needs', builder: (context, state) => const NeedsScreen()),
     ],
   );
