@@ -1,13 +1,13 @@
+import 'package:latlong2/latlong.dart';
+
 class ClusterModel {
-  final String id;
-  final double centroidLatitude;
-  final double centroidLongitude;
-  final int pointCount;
+  final LatLng center;
+  final int count;
+  final List<LatLng> points;
 
   ClusterModel({
-    required this.id,
-    required this.centroidLatitude,
-    required this.centroidLongitude,
-    required this.pointCount,
+    required this.center,
+    required this.count,
+    required this.points,
   });
 }

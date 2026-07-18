@@ -1,7 +1,8 @@
 import 'package:geolocator/geolocator.dart';
+import 'package:latlong2/latlong.dart'; // Beyza'nın harita paketine uygun LatLng
 
 class LocationService {
-  static Future<Position?> getCurrentLocation() async {
+  static Future<LatLng?> getCurrentLocation() async {
     bool serviceEnabled;
     LocationPermission permission;
 
@@ -26,6 +27,6 @@ class LocationService {
       desiredAccuracy: LocationAccuracy.high,
     );
 
-    return position;
+    return LatLng(position.latitude, position.longitude);
   }
 }
