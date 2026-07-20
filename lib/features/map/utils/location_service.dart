@@ -1,32 +1,24 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:latlong2/latlong.dart'; // Beyza'nın harita paketine uygun LatLng
 
-class LocationService {
-  static Future<LatLng?> getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+final userLocationProvider = FutureProvider<Position?>((ref) async {
+  if (!await Geolocator.isLocationServiceEnabled()) return null;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return null;
-    }
-
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return null;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return null;
-    }
-
-    Position position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-
-    return LatLng(position.latitude, position.longitude);
+  var permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
   }
-}
+
+  if (permission == LocationPermission.denied ||
+      permission == LocationPermission.deniedForever) {
+    return null;
+  }
+
+  return await Geolocator.getCurrentPosition(
+    locationSettings: LocationSettings(
+      // Kırmızı hatayı çözen, const olmayan kısım
+      accuracy: LocationAccuracy.high,
+      timeLimit: Duration(seconds: 10),
+    ),
+  );
+});
