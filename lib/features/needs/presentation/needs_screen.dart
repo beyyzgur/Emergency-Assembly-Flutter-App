@@ -220,6 +220,9 @@ class NeedsScreen extends ConsumerWidget {
               ),
               onTap: () async {
                 await ref.read(authServiceProvider).signOut();
+                if (context.mounted) {
+                  context.go('/login');
+                }
               },
             ),
           ],
@@ -323,9 +326,7 @@ class NeedsScreen extends ConsumerWidget {
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(16),
-                    onTap: () {
-                      // TODO: İhtiyaç Detay Ekranına Yönlendir
-                    },
+                    onTap: () {},
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -383,7 +384,6 @@ class NeedsScreen extends ConsumerWidget {
                                       _showDeleteDialog(context, doc.id),
                                 ),
                               if (isOwner) const SizedBox(width: 8),
-
                               Container(
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 10,
