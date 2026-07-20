@@ -7,7 +7,7 @@ import '../../../core/config/map_layers.dart';
 import '../../../core/config/districts.dart';
 import 'map_layer_provider.dart';
 import 'location_providers.dart';
-import '../data/user_location_provider.dart';
+import '../utils/location_service.dart';
 
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});

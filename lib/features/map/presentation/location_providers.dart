@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
-import '../data/user_location_provider.dart';
+import '../utils/location_service.dart';
 
 final manualLocationProvider = StateProvider<LatLng?>((ref) => null);
 
