@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 final authServiceProvider = Provider((ref) => AuthService());
 
@@ -22,21 +21,23 @@ class AuthService {
     await _auth.signInWithCredential(credential);
   }
 
-  Future<void> signInWithApple() async {
-    final credential = await SignInWithApple.getAppleIDCredential(
-      scopes: [
-        AppleIDAuthorizationScopes.email,
-        AppleIDAuthorizationScopes.fullName,
-      ],
-    );
-
-    final AuthCredential appleCredential = OAuthProvider("apple.com")
-        .credential(
-          idToken: credential.identityToken,
-          accessToken: credential.authorizationCode,
-        );
-
-    await _auth.signInWithCredential(appleCredential);
+  Future<String?> signIn(String email, String password) async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+      return null;
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'user-not-found') {
+        return 'Bu e-posta adresiyle kayıtlı kullanıcı bulunamadı.';
+      } else if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        return 'Şifrenizi yanlış girdiniz.';
+      }
+      return 'Giriş yapılamadı: ${e.message}';
+    } catch (e) {
+      return 'Beklenmeyen bir hata oluştu.';
+    }
   }
 
   Future<void> signOut() async {
