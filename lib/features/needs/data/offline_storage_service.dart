@@ -18,7 +18,13 @@ class OfflineStorageService {
     final dbPath = await getApplicationDocumentsDirectory();
     final path = join(dbPath.path, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    // Versiyon 2 yapıldı ve onUpgrade eklendi (Yeni sütun eklendiği için)
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _upgradeDB,
+    );
   }
 
   Future _createDB(Database db, int version) async {
@@ -31,10 +37,18 @@ class OfflineStorageService {
       latitude REAL NOT NULL,
       longitude REAL NOT NULL,
       urgency TEXT NOT NULL,
+      peopleCount INTEGER NOT NULL, 
       createdAt TEXT NOT NULL,
       reporterId TEXT NOT NULL
     )
     ''');
+  }
+
+  Future _upgradeDB(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('DROP TABLE IF EXISTS $_tableName');
+      await _createDB(db, newVersion);
+    }
   }
 
   Future<void> saveNeed(NeedModel need) async {
@@ -50,6 +64,7 @@ class OfflineStorageService {
       'latitude': need.latitude,
       'longitude': need.longitude,
       'urgency': need.urgency,
+      'peopleCount': need.peopleCount, // Kişi sayısı veritabanına ekleniyor
       'createdAt': need.createdAt.toIso8601String(),
       'reporterId': need.reporterId,
     };
@@ -75,6 +90,8 @@ class OfflineStorageService {
         latitude: map['latitude'] as double,
         longitude: map['longitude'] as double,
         urgency: map['urgency'] as String,
+        peopleCount:
+            map['peopleCount'] as int, // Kişi sayısı veritabanından okunuyor
         createdAt: DateTime.parse(
           map['createdAt'] as String,
         ), // Metni tekrar tarihe çeviriyoruz
