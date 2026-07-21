@@ -342,14 +342,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (selectedArea != null) ...[
-                  AreaDetailCard(
-                    area: selectedArea,
-                    onClose: () =>
-                        ref.read(selectedAreaProvider.notifier).state = null,
-                  ),
-                  const SizedBox(height: 12),
-                ],
                 if (topInfo != null) ...[topInfo, const SizedBox(height: 12)],
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
@@ -362,6 +354,31 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       onMyLocation: _goToMyLocation,
                     ),
                   ],
+                ),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeIn,
+                  transitionBuilder: (child, animation) => SizeTransition(
+                    sizeFactor: animation,
+                    alignment: Alignment.topCenter,
+                    child: FadeTransition(opacity: animation, child: child),
+                  ),
+                  child: selectedArea == null
+                      ? const SizedBox(
+                          width: double.infinity,
+                          key: ValueKey('no-detail'),
+                        )
+                      : Padding(
+                          key: ValueKey('detail-${selectedArea.name}'),
+                          padding: const EdgeInsets.only(top: 12),
+                          child: AreaDetailCard(
+                            area: selectedArea,
+                            onClose: () =>
+                                ref.read(selectedAreaProvider.notifier).state =
+                                    null,
+                          ),
+                        ),
                 ),
               ],
             ),
