@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'add_need_screen.dart';
 import '../data/sync_service.dart';
+import '../domain/need_model.dart'; // Düzenleme işlemi için modeli import ettik
 
 class NeedsScreen extends ConsumerWidget {
   const NeedsScreen({super.key});
@@ -307,16 +308,45 @@ class NeedsScreen extends ConsumerWidget {
                                 ),
                               ),
                               if (isOwner)
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red.shade400,
-                                    size: 24,
-                                  ),
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  onPressed: () =>
-                                      _showDeleteDialog(context, doc.id),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.edit_outlined,
+                                        color: Colors.blue.shade600,
+                                        size: 24,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () {
+                                        final existingNeed = NeedModel.fromJson(
+                                          data,
+                                          doc.id,
+                                        );
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AddNeedScreen(
+                                              existingNeed: existingNeed,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: 12),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.delete_outline,
+                                        color: Colors.red.shade400,
+                                        size: 24,
+                                      ),
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                      onPressed: () =>
+                                          _showDeleteDialog(context, doc.id),
+                                    ),
+                                  ],
                                 ),
                               if (isOwner) const SizedBox(width: 8),
 
