@@ -91,11 +91,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   void _goToMyLocation() {
     _userInteracted = true;
-    final loc = ref.read(effectiveLocationProvider);
-    if (loc != null) {
-      _animatedMove(loc, 16);
-    } else {
+    final pos = ref.read(userLocationProvider).valueOrNull;
+    if (pos == null) {
       showDistrictPicker(context);
+      return;
+    }
+    if (ref.read(manualDistrictProvider) != null) {
+      ref.read(manualDistrictProvider.notifier).state = null;
+    } else {
+      _animatedMove(LatLng(pos.latitude, pos.longitude), 16);
     }
   }
 
@@ -173,17 +177,21 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final accuracy = ref.watch(locationAccuracyProvider);
     final userAsync = ref.watch(userLocationProvider);
     final isLocating = userAsync.isLoading;
-    final hasGps = userAsync.valueOrNull != null;
     final manualDistrict = ref.watch(manualDistrictProvider);
     final clustering = ref.watch(clusteringProvider);
     final areasLoading = ref.watch(assemblyAreasProvider).isLoading;
     final selectedArea = ref.watch(selectedAreaProvider);
-    final usingManual = manualDistrict != null && !hasGps;
+    final usingManual = manualDistrict != null;
 
     ref.listen<District?>(manualDistrictProvider, (previous, next) {
       if (next != null) {
         _autoZoomed = true;
         _animatedMove(next.center, 15);
+      } else if (previous != null) {
+        final pos = ref.read(userLocationProvider).valueOrNull;
+        if (pos != null) {
+          _animatedMove(LatLng(pos.latitude, pos.longitude), 16);
+        }
       }
     });
 
@@ -406,48 +414,40 @@ class _MapScreenState extends ConsumerState<MapScreen>
   Widget _locationMarker(String? districtName) {
     final isManual = districtName != null;
     final pinColor = isManual ? AppColors.primary : AppColors.userLocation;
+    final label = districtName ?? 'Konumum';
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        if (isManual) ...[
-          Material(
-            color: AppColors.primary,
-            elevation: 3,
+        Material(
+          color: pinColor,
+          elevation: 3,
+          borderRadius: BorderRadius.circular(20),
+          child: InkWell(
             borderRadius: BorderRadius.circular(20),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              onTap: () => showDistrictPicker(context),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      districtName,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                    const SizedBox(width: 2),
-                    const Icon(
-                      Icons.expand_more,
+            onTap: () => showDistrictPicker(context),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
                       color: Colors.white,
-                      size: 18,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.expand_more, color: Colors.white, size: 18),
+                ],
               ),
             ),
           ),
-          const SizedBox(height: 2),
-        ],
+        ),
+        const SizedBox(height: 2),
         Icon(Icons.location_on, color: pinColor, size: 42),
       ],
     );
