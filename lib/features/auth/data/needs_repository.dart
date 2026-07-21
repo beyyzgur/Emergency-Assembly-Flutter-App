@@ -22,4 +22,22 @@ class NeedsRepository {
       throw Exception("İhtiyaç başlığı boş bırakılamaz.");
     }
   }
+
+  Future<void> updateNeed(NeedModel need) async {
+    if (need.id.isEmpty) {
+      throw Exception('İhtiyaç kaydı bulunamadı, güncelleme yapılamaz.');
+    }
+    if (need.title.isEmpty) {
+      throw Exception('İhtiyaç başlığı boş bırakılamaz.');
+    }
+    if (need.reporterId.isEmpty) {
+      throw Exception('Kullanıcı kimliği bulunamadı, güncelleme yapılamaz.');
+    }
+
+    try {
+      await _firestore.collection('needs').doc(need.id).update(need.toJson());
+    } catch (e) {
+      throw Exception('İhtiyaç güncellenirken bir hata oluştu: $e');
+    }
+  }
 }

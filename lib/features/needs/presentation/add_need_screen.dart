@@ -5,11 +5,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/offline_storage_service.dart';
 import '../../auth/data/needs_repository.dart';
 import '../domain/need_model.dart';
-// TODO: Ana dala (main) merge edince bu importu aktif et:
-// import '../../map/utils/location_service.dart';
 
 class AddNeedScreen extends ConsumerStatefulWidget {
-  const AddNeedScreen({super.key});
+  // Düzenleme işlemi için opsiyonel model eklendi
+  final NeedModel? existingNeed;
+
+  const AddNeedScreen({super.key, this.existingNeed});
 
   @override
   ConsumerState<AddNeedScreen> createState() => _AddNeedScreenState();
@@ -17,12 +18,12 @@ class AddNeedScreen extends ConsumerStatefulWidget {
 
 class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descController = TextEditingController();
-  final _peopleCountController = TextEditingController();
+  late TextEditingController _titleController;
+  late TextEditingController _descController;
+  late TextEditingController _peopleCountController;
 
-  String _selectedCategory = 'Su';
-  String _selectedUrgency = 'Orta';
+  late String _selectedCategory;
+  late String _selectedUrgency;
   bool _isLoading = false;
 
   final List<String> _categories = [
@@ -33,6 +34,24 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
     'Diğer',
   ];
   final List<String> _urgencies = ['Düşük', 'Orta', 'Yüksek', 'Kritik'];
+
+  @override
+  void initState() {
+    super.initState();
+    // Eğer düzenleme yapılıyorsa (existingNeed varsa) verileri doldur, yoksa boş başlat
+    final need = widget.existingNeed;
+    _titleController = TextEditingController(text: need?.title ?? '');
+    _descController = TextEditingController(text: need?.description ?? '');
+    _peopleCountController = TextEditingController(
+      text: need?.peopleCount.toString() ?? '',
+    );
+    _selectedCategory = need != null && _categories.contains(need.category)
+        ? need.category
+        : 'Su';
+    _selectedUrgency = need != null && _urgencies.contains(need.urgency)
+        ? need.urgency
+        : 'Orta';
+  }
 
   @override
   void dispose() {
@@ -57,49 +76,60 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // ŞU ANKİ TEST İÇİN GEÇİCİ SABİT KONUM
-      final double lat = 39.92077;
-      final double lng = 32.85411;
-
-      // TODO: Ana dala merge edince burayı aktif et:
-      // final location = await LocationService.getCurrentLocation();
-      // final double lat = location?.latitude ?? 0.0;
-      // final double lng = location?.longitude ?? 0.0;
-
-      // Kişi sayısını integer'a çeviriyoruz, boşsa 1 kabul ediyoruz
+      final double lat = widget.existingNeed?.latitude ?? 39.92077;
+      final double lng = widget.existingNeed?.longitude ?? 32.85411;
       final int peopleCount = int.tryParse(_peopleCountController.text) ?? 1;
+      final bool isEditing = widget.existingNeed != null;
 
-      final newNeed = NeedModel(
-        id: '',
+      final currentNeed = NeedModel(
+        id: isEditing ? widget.existingNeed!.id : '',
         title: _titleController.text,
         description: _descController.text,
         category: _selectedCategory,
         latitude: lat,
         longitude: lng,
         urgency: _selectedUrgency,
-        createdAt: DateTime.now(),
-        reporterId: currentUser.uid,
-        // TODO: Model dosyasına ve SQLite'a peopleCount eklenecek!
-        // peopleCount: peopleCount,
+        peopleCount: peopleCount,
+        createdAt: isEditing ? widget.existingNeed!.createdAt : DateTime.now(),
+        reporterId: isEditing
+            ? widget.existingNeed!.reporterId
+            : currentUser.uid,
       );
 
       try {
-        await ref
-            .read(needsRepositoryProvider)
-            .addNeed(newNeed)
-            .timeout(const Duration(seconds: 3));
+        if (isEditing) {
+          await ref.read(needsRepositoryProvider).updateNeed(currentNeed);
+        } else {
+          // Yeni ekleme (Insert) işlemi
+          await ref
+              .read(needsRepositoryProvider)
+              .addNeed(currentNeed)
+              .timeout(const Duration(seconds: 3));
+        }
+
         if (mounted) {
-          _showSnackBar('İhtiyaç talebi başarıyla iletildi! 🚀');
+          _showSnackBar(
+            isEditing
+                ? 'Talebiniz başarıyla güncellendi! ✏️'
+                : 'İhtiyaç talebi başarıyla iletildi! 🚀',
+          );
           Navigator.pop(context);
         }
       } catch (e) {
-        await ref.read(offlineStorageProvider).saveNeed(newNeed);
-        if (mounted) {
-          _showSnackBar(
-            'İnternet yok! Kayıt güvenli bir şekilde cihaza alındı. 📡',
-            duration: 4,
-          );
-          Navigator.pop(context);
+        if (!isEditing) {
+          // Sadece yeni kayıtlarda offline yedek alınıyor
+          await ref.read(offlineStorageProvider).saveNeed(currentNeed);
+          if (mounted) {
+            _showSnackBar('İnternet yok! Kayıt cihaza alındı. 📡', duration: 4);
+            Navigator.pop(context);
+          }
+        } else {
+          if (mounted) {
+            _showSnackBar(
+              'Güncelleme için internet bağlantısı gerekiyor.',
+              isError: true,
+            );
+          }
         }
       }
     } finally {
@@ -142,12 +172,16 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEditing = widget.existingNeed != null;
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
-        title: const Text(
-          'Yeni İhtiyaç Talebi',
-          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5),
+        title: Text(
+          isEditing ? 'Talebi Düzenle' : 'Yeni İhtiyaç Talebi',
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
         ),
         centerTitle: true,
         backgroundColor: Colors.white,
@@ -173,7 +207,6 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
               ),
               Card(
                 elevation: 2,
-                shadowColor: Colors.black12,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -206,7 +239,6 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                 ),
               ),
               const SizedBox(height: 24),
-
               const Padding(
                 padding: EdgeInsets.only(left: 8, bottom: 8),
                 child: Text(
@@ -220,7 +252,6 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
               ),
               Card(
                 elevation: 2,
-                shadowColor: Colors.black12,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -232,7 +263,7 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                         children: [
                           Expanded(
                             child: DropdownButtonFormField<String>(
-                              value: _selectedCategory,
+                              initialValue: _selectedCategory,
                               decoration: _customInputDecoration(
                                 'Kategori',
                                 Icons.category,
@@ -269,7 +300,7 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
-                        value: _selectedUrgency,
+                        initialValue: _selectedUrgency,
                         decoration: _customInputDecoration(
                           'Aciliyet Durumu',
                           Icons.warning_amber_rounded,
@@ -286,7 +317,6 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
               ElevatedButton.icon(
                 onPressed: _isLoading ? null : _submitForm,
                 icon: _isLoading
@@ -298,9 +328,14 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Icon(Icons.send_rounded, size: 24),
+                    : Icon(
+                        isEditing ? Icons.save_rounded : Icons.send_rounded,
+                        size: 24,
+                      ),
                 label: Text(
-                  _isLoading ? 'Kaydediliyor...' : 'Talebi İlet',
+                  _isLoading
+                      ? 'Kaydediliyor...'
+                      : (isEditing ? 'Değişiklikleri Kaydet' : 'Talebi İlet'),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -311,13 +346,11 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   backgroundColor: Colors.blue.shade700,
                   foregroundColor: Colors.white,
-                  elevation: 4,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
             ],
           ),
         ),

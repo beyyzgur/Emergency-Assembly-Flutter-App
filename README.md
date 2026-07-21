@@ -6,7 +6,7 @@ Flutter uygulaması. Giriş, harita, ihtiyaç kayıtları ve durum bildirimi mod
 ## Teknolojiler
 
 Flutter · Riverpod (state) · go_router (navigasyon) · flutter_map (harita) ·
-Firebase (Auth: Google + Apple, Firestore, Cloud Messaging).
+Firebase (Auth: Google, Firestore, Cloud Messaging).
 
 Backend'den yalnızca **toplanma alanları** endpoint'i alınır; kimlik doğrulama ve diğer
 veriler Firebase üzerinden yürür.
@@ -20,7 +20,7 @@ lib/
   shared/
     models/     # ortak veri modelleri
   features/
-    auth/       # giriş (Google + Apple)
+    auth/       # giriş (Google)
     map/        # harita
       data/         # veriyi çeken/işleyen taraf
       presentation/ # ekranda gösteren taraf
@@ -51,7 +51,7 @@ Harita, iki developer da eşit teknik sorumluluk alsın diye ikiye bölünür:
 
 Proje Firebase'e bağlıdır. `flutterfire configure` ile üretilen
 `firebase_options.dart`, `google-services.json`, `GoogleService-Info.plist` repoda
-commit'lidir. Console'da açık servisler: Authentication (Google + Apple), Firestore,
+commit'lidir. Console'da açık servisler: Authentication (Google), Firestore,
 Cloud Messaging.
 
 ## Başlangıç
