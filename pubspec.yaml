@@ -50,13 +50,13 @@ dependencies:
 
   # Sosyal login
   google_sign_in: ^7.2.0
-  sign_in_with_apple: ^8.1.0
 
   # Konum
   geolocator: ^14.0.3
 
   # Yardımcı
   http: ^1.2.0
+  path: ^1.9.1
   sqflite: ^2.4.3
   path_provider: ^2.1.6
 dev_dependencies:
