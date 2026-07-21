@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'add_need_screen.dart';
-import '../../auth/data/auth_service.dart';
 import '../data/sync_service.dart';
 
 class NeedsScreen extends ConsumerWidget {
@@ -162,68 +160,6 @@ class NeedsScreen extends ConsumerWidget {
           ),
           const SizedBox(width: 8),
         ],
-      ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue.shade700),
-              child: const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Icon(Icons.shield, color: Colors.white, size: 48),
-                  SizedBox(height: 12),
-                  Text(
-                    'AFAD Koordinasyon',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.map_outlined),
-              title: const Text(
-                'Genel Harita',
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                context.go('/map');
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.list_alt, color: Colors.blue),
-              title: const Text(
-                'İhtiyaç Kayıtları',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue,
-                ),
-              ),
-              onTap: () => Navigator.pop(context),
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout, color: Colors.redAccent),
-              title: const Text(
-                'Çıkış Yap',
-                style: TextStyle(
-                  color: Colors.redAccent,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              onTap: () async {
-                await ref.read(authServiceProvider).signOut();
-              },
-            ),
-          ],
-        ),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
