@@ -5,10 +5,6 @@ import 'package:flutter_map/flutter_map.dart';
 import '../../../../core/theme/app_colors.dart';
 
 /// Harita dönükken beliren, dokununca haritayı animasyonlu kuzeye döndüren pusula.
-///
-/// Kendi sorumluluğunu tamamen yönetir (SRP): dönüş açısını haritanın olay
-/// akışından (mapEventStream) dinler, animasyonu kendi tutar. Böylece map_screen
-/// pusulayla hiç meşgul olmaz.
 class MapCompass extends StatefulWidget {
   const MapCompass({super.key, required this.controller});
 
@@ -18,9 +14,7 @@ class MapCompass extends StatefulWidget {
   State<MapCompass> createState() => _MapCompassState();
 }
 
-class _MapCompassState extends State<MapCompass>
-    with SingleTickerProviderStateMixin {
-  // Dönüş değişince sadece pusula yenilenir, harita etkilenmez.
+class _MapCompassState extends State<MapCompass> with TickerProviderStateMixin {
   final ValueNotifier<double> _rotation = ValueNotifier<double>(0);
   StreamSubscription<MapEvent>? _sub;
   AnimationController? _animController;
@@ -28,7 +22,6 @@ class _MapCompassState extends State<MapCompass>
   @override
   void initState() {
     super.initState();
-    // Harita her hareket/dönüşte güncel dönüş açısını yakala
     _sub = widget.controller.mapEventStream.listen((_) {
       _rotation.value = widget.controller.camera.rotation;
     });
@@ -42,12 +35,11 @@ class _MapCompassState extends State<MapCompass>
     super.dispose();
   }
 
-  /// Haritayı en kısa yönden animasyonlu olarak kuzeye döndürür.
   void _rotateToNorth() {
     _animController?.dispose();
 
     final start = _rotation.value;
-    final norm = (start % 360 + 360) % 360; // [0, 360)
+    final norm = (start % 360 + 360) % 360;
     // En kısa yön: 180'den küçükse geri dön, değilse ileri tamamla
     final end = norm <= 180 ? start - norm : start + (360 - norm);
 
@@ -72,7 +64,6 @@ class _MapCompassState extends State<MapCompass>
       builder: (context, rotation, _) {
         final norm = (rotation % 360 + 360) % 360;
         final isRotated = norm > 0.5 && norm < 359.5;
-        // Dönükken 1'e büyür, kuzeydeyken 0'a küçülür → animasyonlu gel/git
         return AnimatedScale(
           scale: isRotated ? 1 : 0,
           duration: const Duration(milliseconds: 200),
@@ -83,7 +74,6 @@ class _MapCompassState extends State<MapCompass>
             foregroundColor: AppColors.primary,
             onPressed: _rotateToNorth,
             child: Transform.rotate(
-              // Harita dönünce iğne ters yönde döner ki hep kuzeyi göstersin
               angle: -rotation * math.pi / 180,
               child: const Icon(Icons.navigation),
             ),
