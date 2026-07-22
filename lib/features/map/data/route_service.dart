@@ -6,33 +6,49 @@ import 'package:latlong2/latlong.dart';
 
 import '../domain/route_result.dart';
 
-/// OSRM'den rota alır; servis kullanılamazsa uygulamanın rota UI'ı çalışmaya
-/// devam etsin diye doğru-çizgi ve yürüme süresi tahmini döndürür.
+/// OpenRouteService'in `foot-walking` profilinden yaya rotası alır.
+///
+/// API anahtarı kaynak koda yazılmaz; uygulama çalıştırılırken
+/// `--dart-define=ORS_API_KEY=...` ile verilir. Anahtar yoksa veya servis
+/// kullanılamazsa rota UI'ı çalışmaya devam etsin diye doğru-çizgi ve yürüme
+/// süresi tahmini döndürür.
 class RouteService {
   const RouteService({
     this.timeout = const Duration(seconds: 5),
     this.walkingSpeedMetersPerSecond = 1.4,
+    this.apiKey = const String.fromEnvironment('ORS_API_KEY'),
   });
 
   final Duration timeout;
   final double walkingSpeedMetersPerSecond;
+  final String apiKey;
 
   Future<RouteResult> getRoute({
     required LatLng from,
     required LatLng to,
   }) async {
+    if (apiKey.isEmpty) {
+      return localFallback(from: from, to: to);
+    }
+
     try {
       final response = await http
-          .get(_osrmUri(from: from, to: to))
+          .get(
+            _openRouteServiceUri(from: from, to: to),
+            headers: {
+              'Authorization': apiKey,
+              'Accept': 'application/geo+json',
+            },
+          )
           .timeout(timeout);
 
       if (response.statusCode != 200) {
         throw FormatException(
-          'OSRM rota isteği başarısız: ${response.statusCode}',
+          'ORS yaya rota isteği başarısız: ${response.statusCode}',
         );
       }
 
-      return parseOsrmRoute(jsonDecode(response.body) as Map<String, dynamic>);
+      return parseOrsRoute(jsonDecode(response.body) as Map<String, dynamic>);
     } on TimeoutException {
       return localFallback(from: from, to: to);
     } on http.ClientException {
@@ -42,34 +58,57 @@ class RouteService {
     }
   }
 
-  /// OSRM GeoJSON yanıtını, UI'ın kullandığı ortak rota modeline çevirir.
-  static RouteResult parseOsrmRoute(Map<String, dynamic> response) {
-    final routes = response['routes'] as List?;
-    if (routes == null || routes.isEmpty) {
-      throw const FormatException('OSRM yanıtında rota bulunamadı.');
+  /// ORS GeoJSON yanıtını, UI'ın kullandığı ortak rota modeline çevirir.
+  static RouteResult parseOrsRoute(Map<String, dynamic> response) {
+    final features = response['features'];
+    if (features is! List || features.isEmpty) {
+      throw const FormatException('ORS yanıtında rota bulunamadı.');
     }
 
-    final route = routes.first as Map<String, dynamic>;
-    final geometry = route['geometry'] as Map<String, dynamic>?;
-    final coordinates = geometry?['coordinates'] as List?;
-    if (coordinates == null || coordinates.length < 2) {
-      throw const FormatException('OSRM rota geometrisi geçersiz.');
+    final feature = features.first;
+    if (feature is! Map<String, dynamic>) {
+      throw const FormatException('ORS rota verisi geçersiz.');
     }
 
-    final points = coordinates
-        .map((coordinate) {
-          final pair = coordinate as List;
-          return LatLng(
-            (pair[1] as num).toDouble(),
-            (pair[0] as num).toDouble(),
-          );
-        })
-        .toList(growable: false);
+    final geometry = feature['geometry'];
+    final properties = feature['properties'];
+    if (geometry is! Map<String, dynamic> ||
+        properties is! Map<String, dynamic>) {
+      throw const FormatException('ORS rota geometrisi geçersiz.');
+    }
+
+    final coordinates = geometry['coordinates'];
+    final summary = properties['summary'];
+    if (coordinates is! List || coordinates.length < 2 || summary is! Map) {
+      throw const FormatException('ORS rota geometrisi geçersiz.');
+    }
+
+    final points = <LatLng>[];
+    for (final coordinate in coordinates) {
+      if (coordinate is! List ||
+          coordinate.length < 2 ||
+          coordinate[0] is! num ||
+          coordinate[1] is! num) {
+        throw const FormatException('ORS koordinat verisi geçersiz.');
+      }
+      points.add(
+        LatLng(
+          (coordinate[1] as num).toDouble(),
+          (coordinate[0] as num).toDouble(),
+        ),
+      );
+    }
+
+    final distance = summary['distance'];
+    final duration = summary['duration'];
+    if (distance is! num || duration is! num) {
+      throw const FormatException('ORS rota özeti geçersiz.');
+    }
 
     return RouteResult(
       points: points,
-      distanceMeters: (route['distance'] as num).toDouble(),
-      durationSeconds: (route['duration'] as num).toDouble(),
+      distanceMeters: distance.toDouble(),
+      durationSeconds: duration.toDouble(),
     );
   }
 
@@ -83,13 +122,14 @@ class RouteService {
     );
   }
 
-  Uri _osrmUri({required LatLng from, required LatLng to}) {
-    final coordinates =
-        '${from.longitude},${from.latitude};${to.longitude},${to.latitude}';
+  Uri _openRouteServiceUri({required LatLng from, required LatLng to}) {
     return Uri.https(
-      'router.project-osrm.org',
-      '/route/v1/driving/$coordinates',
-      {'overview': 'full', 'geometries': 'geojson'},
+      'api.openrouteservice.org',
+      '/v2/directions/foot-walking',
+      {
+        'start': '${from.longitude},${from.latitude}',
+        'end': '${to.longitude},${to.latitude}',
+      },
     );
   }
 }

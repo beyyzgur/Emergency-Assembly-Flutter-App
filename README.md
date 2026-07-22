@@ -68,3 +68,17 @@ flutter run
 `main` korumalıdır (doğrudan push yok, PR + 1 onay). Herkes kısa ömürlü feature
 branch'te çalışır: `feature/map-data`, `feature/map-presentation`, `feature/auth`,
 `feature/needs`, `feature/checkin`.
+## Yaya rotası (OpenRouteService)
+
+Rota servisi, OpenRouteService'in `foot-walking` profilini kullanır. Yerelde
+gerçek yaya rotasını görmek için uygulamayı API anahtarını kaynak koda
+eklemeden çalıştır:
+
+```bash
+flutter run --dart-define=ORS_API_KEY='kendi_anahtarin'
+```
+
+Anahtar verilmezse uygulama ağ isteği atmaz; doğru-çizgi ve yürüme süresi
+tahminiyle çalışmaya devam eder. API anahtarını Git'e ekleme. Dağıtılan mobil
+uygulamalarda anahtar görünür hâle gelebileceği için, canlı sürümde ORS
+isteklerini sunucu üzerinden geçirmek gerekir.

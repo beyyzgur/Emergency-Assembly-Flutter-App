@@ -17,13 +17,28 @@ void main() {
     expect(result.durationSeconds, closeTo(result.distanceMeters / 1.4, 0.001));
   });
 
-  test('OSRM GeoJSON yanıtı ortak rota modeline çevrilir', () {
-    final result = RouteService.parseOsrmRoute({
-      'routes': [
+  test('API anahtarı yoksa yerel yürüme fallbacki kullanılır', () async {
+    const serviceWithoutApiKey = RouteService(apiKey: '');
+    const from = LatLng(39.93, 32.85);
+    const to = LatLng(39.94, 32.86);
+
+    final result = await serviceWithoutApiKey.getRoute(from: from, to: to);
+
+    expect(result.points, [from, to]);
+    expect(result.durationSeconds, greaterThan(0));
+  });
+
+  test('ORS GeoJSON yanıtı ortak rota modeline çevrilir', () {
+    final result = RouteService.parseOrsRoute({
+      'type': 'FeatureCollection',
+      'features': [
         {
-          'distance': 1250.5,
-          'duration': 780.0,
+          'type': 'Feature',
+          'properties': {
+            'summary': {'distance': 1250.5, 'duration': 780.0},
+          },
           'geometry': {
+            'type': 'LineString',
             'coordinates': [
               [32.85, 39.93],
               [32.86, 39.94],
