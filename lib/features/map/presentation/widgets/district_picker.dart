@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/districts.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/turkish.dart';
 import '../location_providers.dart';
 
@@ -29,6 +30,7 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
     final filtered = kAnkaraDistricts
         .where((d) => normalizeTr(d.name).contains(q))
         .toList();
+    final hasManual = ref.watch(manualDistrictProvider) != null;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -38,6 +40,19 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
         height: MediaQuery.of(context).size.height * 0.6,
         child: Column(
           children: [
+            // Manuel seçim aktifken ilk satır: GPS'e dön.
+            if (hasManual) ...[
+              ListTile(
+                leading: const Icon(Icons.gps_fixed, color: AppColors.accent),
+                title: const Text('GPS Konumuna dön'),
+                subtitle: const Text('Manuel seçimi kaldır'),
+                onTap: () {
+                  ref.read(manualDistrictProvider.notifier).state = null;
+                  Navigator.pop(context);
+                },
+              ),
+              const Divider(height: 1),
+            ],
             Padding(
               padding: const EdgeInsets.all(16),
               child: TextField(
