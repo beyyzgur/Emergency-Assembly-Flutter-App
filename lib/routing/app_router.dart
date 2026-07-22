@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
+import '../features/checkin/presentation/check_in_screen.dart';
 import '../features/map/presentation/map_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/needs/presentation/needs_screen.dart';
@@ -35,6 +36,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
+      ),
+      GoRoute(
+        path: '/checkin',
+        builder: (context, state) => const CheckInScreen(),
       ),
 
       StatefulShellRoute.indexedStack(
