@@ -4,83 +4,81 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:latlong2/latlong.dart';
 
+import '../domain/route_mode.dart';
 import '../domain/route_result.dart';
 
-/// OpenRouteService'in `foot-walking` profilinden yaya rotası alır.
+/// Açık OSRM servislerinden rota alır.
 ///
-/// API anahtarı kaynak koda yazılmaz; uygulama çalıştırılırken
-/// `--dart-define=ORS_API_KEY=...` ile verilir. Anahtar yoksa veya servis
-/// kullanılamazsa rota UI'ı çalışmaya devam etsin diye doğru-çizgi ve yürüme
-/// süresi tahmini döndürür.
+/// [RouteMode.walking] FOSSGIS'in anahtarsız `routed-foot` servisini kullanır.
+/// [RouteMode.driving] ise genel OSRM `driving` servisini kullanır. Her iki
+/// servis de OSRM yanıt biçiminde olduğu için tek bir parser kullanılır.
+///
+/// Ağ veya servis problemi olduğunda uygulamanın rota akışı kırılmasın diye
+/// iki noktalı düz çizgi ve profile uygun süre tahmini döndürülür.
 class RouteService {
   const RouteService({
     this.timeout = const Duration(seconds: 5),
     this.walkingSpeedMetersPerSecond = 1.4,
-    this.apiKey = const String.fromEnvironment('ORS_API_KEY'),
+    this.drivingSpeedMetersPerSecond = 13.9,
   });
 
   final Duration timeout;
   final double walkingSpeedMetersPerSecond;
-  final String apiKey;
+  final double drivingSpeedMetersPerSecond;
 
   Future<RouteResult> getRoute({
     required LatLng from,
     required LatLng to,
+    RouteMode mode = RouteMode.walking,
   }) async {
-    if (apiKey.isEmpty) {
-      return localFallback(from: from, to: to);
-    }
-
     try {
       final response = await http
           .get(
-            _openRouteServiceUri(from: from, to: to),
-            headers: {
-              'Authorization': apiKey,
-              'Accept': 'application/geo+json',
-            },
+            routeUri(from: from, to: to, mode: mode),
+            headers: const {'Accept': 'application/json'},
           )
           .timeout(timeout);
 
       if (response.statusCode != 200) {
         throw FormatException(
-          'ORS yaya rota isteği başarısız: ${response.statusCode}',
+          '${mode.label} rota isteği başarısız: ${response.statusCode}',
         );
       }
 
-      return parseOrsRoute(jsonDecode(response.body) as Map<String, dynamic>);
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        throw const FormatException('OSRM rota yanıtı geçersiz.');
+      }
+      return parseOsrmRoute(decoded);
     } on TimeoutException {
-      return localFallback(from: from, to: to);
+      return localFallback(from: from, to: to, mode: mode);
     } on http.ClientException {
-      return localFallback(from: from, to: to);
+      return localFallback(from: from, to: to, mode: mode);
     } on FormatException {
-      return localFallback(from: from, to: to);
+      return localFallback(from: from, to: to, mode: mode);
     }
   }
 
-  /// ORS GeoJSON yanıtını, UI'ın kullandığı ortak rota modeline çevirir.
-  static RouteResult parseOrsRoute(Map<String, dynamic> response) {
-    final features = response['features'];
-    if (features is! List || features.isEmpty) {
-      throw const FormatException('ORS yanıtında rota bulunamadı.');
+  /// OSRM yanıtını, UI'ın kullandığı ortak rota modeline çevirir.
+  static RouteResult parseOsrmRoute(Map<String, dynamic> response) {
+    final routes = response['routes'];
+    if (routes is! List || routes.isEmpty) {
+      throw const FormatException('OSRM yanıtında rota bulunamadı.');
     }
 
-    final feature = features.first;
-    if (feature is! Map<String, dynamic>) {
-      throw const FormatException('ORS rota verisi geçersiz.');
+    final route = routes.first;
+    if (route is! Map<String, dynamic>) {
+      throw const FormatException('OSRM rota verisi geçersiz.');
     }
 
-    final geometry = feature['geometry'];
-    final properties = feature['properties'];
-    if (geometry is! Map<String, dynamic> ||
-        properties is! Map<String, dynamic>) {
-      throw const FormatException('ORS rota geometrisi geçersiz.');
+    final geometry = route['geometry'];
+    if (geometry is! Map<String, dynamic>) {
+      throw const FormatException('OSRM rota geometrisi geçersiz.');
     }
 
     final coordinates = geometry['coordinates'];
-    final summary = properties['summary'];
-    if (coordinates is! List || coordinates.length < 2 || summary is! Map) {
-      throw const FormatException('ORS rota geometrisi geçersiz.');
+    if (coordinates is! List || coordinates.length < 2) {
+      throw const FormatException('OSRM rota geometrisi geçersiz.');
     }
 
     final points = <LatLng>[];
@@ -89,7 +87,7 @@ class RouteService {
           coordinate.length < 2 ||
           coordinate[0] is! num ||
           coordinate[1] is! num) {
-        throw const FormatException('ORS koordinat verisi geçersiz.');
+        throw const FormatException('OSRM koordinat verisi geçersiz.');
       }
       points.add(
         LatLng(
@@ -99,10 +97,10 @@ class RouteService {
       );
     }
 
-    final distance = summary['distance'];
-    final duration = summary['duration'];
+    final distance = route['distance'];
+    final duration = route['duration'];
     if (distance is! num || duration is! num) {
-      throw const FormatException('ORS rota özeti geçersiz.');
+      throw const FormatException('OSRM rota özeti geçersiz.');
     }
 
     return RouteResult(
@@ -112,24 +110,44 @@ class RouteService {
     );
   }
 
-  /// Ağ yokken çizilebilir rota ve tahmini yürüyüş süresi sağlayan fallback.
-  RouteResult localFallback({required LatLng from, required LatLng to}) {
+  /// Ağ yokken çizilebilir rota ve profile uygun tahmini süre sağlayan fallback.
+  RouteResult localFallback({
+    required LatLng from,
+    required LatLng to,
+    RouteMode mode = RouteMode.walking,
+  }) {
     final distanceMeters = const Distance().as(LengthUnit.Meter, from, to);
+    final speed = switch (mode) {
+      RouteMode.walking => walkingSpeedMetersPerSecond,
+      RouteMode.driving => drivingSpeedMetersPerSecond,
+    };
     return RouteResult(
       points: [from, to],
       distanceMeters: distanceMeters,
-      durationSeconds: distanceMeters / walkingSpeedMetersPerSecond,
+      durationSeconds: distanceMeters / speed,
     );
   }
 
-  Uri _openRouteServiceUri({required LatLng from, required LatLng to}) {
-    return Uri.https(
-      'api.openrouteservice.org',
-      '/v2/directions/foot-walking',
-      {
-        'start': '${from.longitude},${from.latitude}',
-        'end': '${to.longitude},${to.latitude}',
-      },
-    );
+  /// Seçilen profile ait anahtarsız OSRM uç noktasını üretir.
+  static Uri routeUri({
+    required LatLng from,
+    required LatLng to,
+    RouteMode mode = RouteMode.walking,
+  }) {
+    final coordinates =
+        '${from.longitude},${from.latitude};${to.longitude},${to.latitude}';
+    final host = switch (mode) {
+      RouteMode.walking => 'routing.openstreetmap.de',
+      RouteMode.driving => 'router.project-osrm.org',
+    };
+    final path = switch (mode) {
+      RouteMode.walking => '/routed-foot/route/v1/foot/$coordinates',
+      RouteMode.driving => '/route/v1/driving/$coordinates',
+    };
+
+    return Uri.https(host, path, const {
+      'overview': 'full',
+      'geometries': 'geojson',
+    });
   }
 }

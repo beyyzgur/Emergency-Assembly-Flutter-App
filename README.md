@@ -68,17 +68,24 @@ flutter run
 `main` korumalıdır (doğrudan push yok, PR + 1 onay). Herkes kısa ömürlü feature
 branch'te çalışır: `feature/map-data`, `feature/map-presentation`, `feature/auth`,
 `feature/needs`, `feature/checkin`.
-## Yaya rotası (OpenRouteService)
+## Rota profilleri
 
-Rota servisi, OpenRouteService'in `foot-walking` profilini kullanır. Yerelde
-gerçek yaya rotasını görmek için uygulamayı API anahtarını kaynak koda
-eklemeden çalıştır:
+Rota servisi anahtarsız OSRM uç noktalarıyla çalışır. Varsayılan profil gerçek
+yaya yollarını kullanan FOSSGIS OSRM-foot servisidir:
 
-```bash
-flutter run --dart-define=ORS_API_KEY='kendi_anahtarin'
+```text
+https://routing.openstreetmap.de/routed-foot/route/v1/foot/
 ```
 
-Anahtar verilmezse uygulama ağ isteği atmaz; doğru-çizgi ve yürüme süresi
-tahminiyle çalışmaya devam eder. API anahtarını Git'e ekleme. Dağıtılan mobil
-uygulamalarda anahtar görünür hâle gelebileceği için, canlı sürümde ORS
-isteklerini sunucu üzerinden geçirmek gerekir.
+Araç seçeneği genel OSRM `driving` profilini kullanır:
+
+```text
+https://router.project-osrm.org/route/v1/driving/
+```
+
+Her iki istek de tüm sokak geometrisini GeoJSON olarak döndürür; bu nedenle
+haritada düz çizgi yerine sokakları izleyen rota çizilebilir. Bağlantı yoksa
+veya açık servis yanıt vermezse uygulama kapanmaz; iki noktalı düz çizgi ve
+seçilen profile göre süre tahmini döndürür. Açık uç noktalar ödev/demo amaçlı
+fair-use kullanıma uygundur; yoğun canlı trafik için yönetilen bir rota servisi
+tercih edilmelidir.
