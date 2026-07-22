@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/register_screen.dart';
 import '../features/map/presentation/map_screen.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/needs/presentation/needs_screen.dart';
@@ -22,14 +23,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       if (authState.isLoading) return null;
 
       final bool isLoggedIn = authState.valueOrNull != null;
-      final bool isLoggingIn = state.uri.toString() == '/login';
+      final bool isAuthPage =
+          state.uri.path == '/login' || state.uri.path == '/register';
 
-      if (!isLoggedIn) return isLoggingIn ? null : '/login';
-      if (isLoggingIn) return '/map';
+      if (!isLoggedIn) return isAuthPage ? null : '/login';
+      if (isAuthPage) return '/map';
       return null;
     },
     routes: [
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterScreen(),
+      ),
 
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

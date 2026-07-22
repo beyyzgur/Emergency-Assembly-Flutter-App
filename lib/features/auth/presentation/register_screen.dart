@@ -6,78 +6,59 @@ import '../../../core/theme/app_colors.dart';
 import '../data/auth_service.dart';
 import 'widgets/auth_brand.dart';
 
-enum _LoginMethod { email, google }
-
-class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  ConsumerState<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  _LoginMethod? _activeMethod;
+  final _confirmPasswordController = TextEditingController();
+  bool _isLoading = false;
   bool _isPasswordVisible = false;
-
-  bool get _isLoading => _activeMethod != null;
+  bool _isConfirmPasswordVisible = false;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
-  Future<void> _loginWithEmail() async {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    setState(() => _activeMethod = _LoginMethod.email);
+    setState(() => _isLoading = true);
     final errorMessage = await ref
         .read(authServiceProvider)
-        .signIn(_emailController.text.trim(), _passwordController.text);
+        .registerWithEmail(
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
 
     if (!mounted) {
       return;
     }
-    setState(() => _activeMethod = null);
+    setState(() => _isLoading = false);
 
     if (errorMessage != null) {
-      _showMessage(errorMessage);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMessage),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
       return;
     }
 
     context.go('/map');
-  }
-
-  Future<void> _loginWithGoogle() async {
-    setState(() => _activeMethod = _LoginMethod.google);
-
-    try {
-      await ref.read(authServiceProvider).signInWithGoogle();
-      if (!mounted) {
-        return;
-      }
-      context.go('/map');
-    } catch (_) {
-      if (mounted) {
-        _showMessage('Google ile giriş şu an tamamlanamadı. Tekrar deneyin.');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _activeMethod = null);
-      }
-    }
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), behavior: SnackBarBehavior.floating),
-    );
   }
 
   @override
@@ -95,8 +76,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const AuthBrandHeader(),
-                    const SizedBox(height: 20),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        tooltip: 'Giriş ekranına dön',
+                        onPressed: _isLoading
+                            ? null
+                            : () => context.go('/login'),
+                        icon: const Icon(Icons.arrow_back_rounded),
+                      ),
+                    ),
+                    const AuthBrandHeader(showTagline: false),
+                    const SizedBox(height: 24),
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
@@ -124,7 +115,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 22),
                           const Text(
-                            'Güvenli giriş',
+                            'Hesap oluştur',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 24,
@@ -133,7 +124,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 6),
                           const Text(
-                            'Toplanma alanlarına ve ihtiyaç kayıtlarına erişmek için hesabınla devam et.',
+                            'Acil durumlarda ihtiyaç bilgilerine hızlıca ulaşmak için kaydol.',
                             style: TextStyle(
                               color: Color(0xFF65738A),
                               height: 1.45,
@@ -145,7 +136,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             enabled: !_isLoading,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
-                            autofillHints: const [AutofillHints.username],
+                            autofillHints: const [AutofillHints.email],
                             decoration: _inputDecoration(
                               label: 'E-posta adresi',
                               icon: Icons.mail_outline_rounded,
@@ -166,32 +157,49 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             controller: _passwordController,
                             enabled: !_isLoading,
                             obscureText: !_isPasswordVisible,
-                            textInputAction: TextInputAction.done,
-                            autofillHints: const [AutofillHints.password],
-                            onFieldSubmitted: (_) => _loginWithEmail(),
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.newPassword],
                             decoration: _inputDecoration(
                               label: 'Şifre',
                               icon: Icons.lock_outline_rounded,
-                              suffix: IconButton(
-                                tooltip: _isPasswordVisible
-                                    ? 'Şifreyi gizle'
-                                    : 'Şifreyi göster',
-                                onPressed: _isLoading
-                                    ? null
-                                    : () => setState(
-                                        () => _isPasswordVisible =
-                                            !_isPasswordVisible,
-                                      ),
-                                icon: Icon(
-                                  _isPasswordVisible
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
+                              helperText: 'En az 6 karakter kullanın.',
+                              suffix: _visibilityButton(
+                                isVisible: _isPasswordVisible,
+                                onPressed: () => setState(
+                                  () =>
+                                      _isPasswordVisible = !_isPasswordVisible,
                                 ),
                               ),
                             ),
                             validator: (value) {
-                              if ((value ?? '').isEmpty) {
-                                return 'Şifrenizi girin.';
+                              if ((value?.length ?? 0) < 6) {
+                                return 'Şifreniz en az 6 karakter olmalı.';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _confirmPasswordController,
+                            enabled: !_isLoading,
+                            obscureText: !_isConfirmPasswordVisible,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.newPassword],
+                            onFieldSubmitted: (_) => _register(),
+                            decoration: _inputDecoration(
+                              label: 'Şifre tekrar',
+                              icon: Icons.lock_reset_rounded,
+                              suffix: _visibilityButton(
+                                isVisible: _isConfirmPasswordVisible,
+                                onPressed: () => setState(
+                                  () => _isConfirmPasswordVisible =
+                                      !_isConfirmPasswordVisible,
+                                ),
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value != _passwordController.text) {
+                                return 'Şifreler birbiriyle eşleşmiyor.';
                               }
                               return null;
                             },
@@ -200,7 +208,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           SizedBox(
                             height: 52,
                             child: FilledButton(
-                              onPressed: _isLoading ? null : _loginWithEmail,
+                              onPressed: _isLoading ? null : _register,
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
@@ -208,7 +216,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                               ),
-                              child: _activeMethod == _LoginMethod.email
+                              child: _isLoading
                                   ? const SizedBox(
                                       height: 22,
                                       width: 22,
@@ -218,7 +226,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                     )
                                   : const Text(
-                                      'Giriş Yap',
+                                      'Hesap oluştur',
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
@@ -226,88 +234,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Henüz hesabın yok mu?',
-                                style: TextStyle(
-                                  color: Color(0xFF65738A),
-                                  fontSize: 13,
-                                ),
-                              ),
-                              TextButton(
-                                onPressed: _isLoading
-                                    ? null
-                                    : () => context.go('/register'),
-                                child: const Text(
-                                  'Kayıt ol',
-                                  style: TextStyle(fontWeight: FontWeight.w700),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          const Row(
-                            children: [
-                              Expanded(child: Divider()),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'veya',
-                                  style: TextStyle(color: Color(0xFF8A96A8)),
-                                ),
-                              ),
-                              Expanded(child: Divider()),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            height: 52,
-                            child: OutlinedButton.icon(
-                              onPressed: _isLoading ? null : _loginWithGoogle,
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppColors.primary,
-                                side: const BorderSide(
-                                  color: Color(0xFFD8E0EB),
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                              ),
-                              icon: _activeMethod == _LoginMethod.google
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2.25,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.g_mobiledata_rounded,
-                                      color: Color(0xFF4285F4),
-                                      size: 30,
-                                    ),
-                              label: Text(
-                                _activeMethod == _LoginMethod.google
-                                    ? 'Google hesabı açılıyor...'
-                                    : 'Google ile devam et',
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 14),
-                    const Text(
-                      'Acil durumlarda hızlı erişim için bilgilerin güvenle saklanır.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Color(0xFF8A96A8), fontSize: 12),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Zaten hesabın var mı?',
+                          style: TextStyle(color: Color(0xFF65738A)),
+                        ),
+                        TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () => context.go('/login'),
+                          child: const Text(
+                            'Giriş yap',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -319,13 +266,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     );
   }
 
+  IconButton _visibilityButton({
+    required bool isVisible,
+    required VoidCallback onPressed,
+  }) {
+    return IconButton(
+      tooltip: isVisible ? 'Şifreyi gizle' : 'Şifreyi göster',
+      onPressed: _isLoading ? null : onPressed,
+      icon: Icon(
+        isVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+      ),
+    );
+  }
+
   InputDecoration _inputDecoration({
     required String label,
     required IconData icon,
+    String? helperText,
     Widget? suffix,
   }) {
     return InputDecoration(
       labelText: label,
+      helperText: helperText,
       prefixIcon: Icon(icon),
       suffixIcon: suffix,
       filled: true,
