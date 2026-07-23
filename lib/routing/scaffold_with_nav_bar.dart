@@ -19,15 +19,18 @@ class ScaffoldWithNavBar extends StatelessWidget {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.map_outlined),
+            selectedIcon: Icon(Icons.map),
             label: 'Harita',
           ),
           NavigationDestination(
-            icon: Icon(Icons.list_alt_outlined),
+            icon: Icon(Icons.volunteer_activism_outlined),
+            selectedIcon: Icon(Icons.volunteer_activism),
             label: 'İhtiyaçlar',
           ),
           NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            label: 'Profil',
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Ayarlar',
           ),
         ],
       ),

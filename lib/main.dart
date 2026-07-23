@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
+import 'core/theme/app_theme.dart';
 import 'firebase_options.dart';
 import 'routing/app_router.dart';
 import 'features/map/presentation/providers/assembly_areas_provider.dart';
@@ -48,6 +49,7 @@ class _MyAppState extends ConsumerState<MyApp> {
     return MaterialApp.router(
       title: 'ATİS',
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
       routerConfig: router,
     );
   }

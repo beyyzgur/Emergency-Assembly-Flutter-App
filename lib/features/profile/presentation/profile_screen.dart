@@ -12,10 +12,11 @@ class ProfileScreen extends ConsumerWidget {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: const Text('Ayarlar')),
       body: ListView(
         children: [
           const SizedBox(height: 8),
+          _sectionTitle('Profil'),
           ListTile(
             leading: CircleAvatar(
               radius: 26,
@@ -33,7 +34,7 @@ class ProfileScreen extends ConsumerWidget {
           _sectionTitle('Uygulama'),
           const ListTile(
             leading: Icon(Icons.info_outline, color: AppColors.primary),
-            title: Text('ATİS — Afet Toplanma Alanı İşaretleme Sistemi'),
+            title: Text('ATİS: Afet Toplanma Alanı İşaretleme Sistemi'),
             subtitle: Text('Sürüm 1.0.0'),
           ),
           const Divider(),
