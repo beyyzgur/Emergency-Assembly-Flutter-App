@@ -230,7 +230,6 @@ class _MapScreenState extends ConsumerState<MapScreen>
               onMapReady: () => _onMapMoved(_mapController.camera),
               onPositionChanged: (camera, hasGesture) =>
                   _onMapMoved(camera, hasGesture: hasGesture),
-              // Bir alana dokununca detay kartını aç (boşluğa dokununca kapat)
               onTap: (tapPosition, latlng) {
                 _userInteracted = true;
                 AssemblyArea? hit;
@@ -263,11 +262,15 @@ class _MapScreenState extends ConsumerState<MapScreen>
                     ),
                   ],
                 ),
-              if (clustering.polygons.isNotEmpty)
+              if (clustering.polygons.isNotEmpty || selectedArea != null)
                 PolygonLayer(
                   polygons: [
+                    // Seçili olmayan poligonlar (mesafe rengi)
                     for (final area in clustering.polygons)
-                      _polygonFor(area, location),
+                      if (!_sameArea(area, selectedArea))
+                        _polygonFor(area, location),
+                    if (selectedArea != null)
+                      _polygonFor(selectedArea, location, isSelected: true),
                   ],
                 ),
               MarkerLayer(
@@ -388,8 +391,24 @@ class _MapScreenState extends ConsumerState<MapScreen>
     );
   }
 
-  /// Bir toplanma alanı poligonu — kullanıcıya uzaklığına göre renklenir.
-  Polygon _polygonFor(AssemblyArea area, LatLng? userLoc) {
+  bool _sameArea(AssemblyArea a, AssemblyArea? b) =>
+      b != null &&
+      a.center.latitude == b.center.latitude &&
+      a.center.longitude == b.center.longitude;
+
+  Polygon _polygonFor(
+    AssemblyArea area,
+    LatLng? userLoc, {
+    bool isSelected = false,
+  }) {
+    if (isSelected) {
+      return Polygon(
+        points: area.ring,
+        color: AppColors.selected.withValues(alpha: 0.45),
+        borderColor: AppColors.selected,
+        borderStrokeWidth: 4,
+      );
+    }
     final meters = userLoc == null
         ? null
         : const Distance().as(LengthUnit.Meter, userLoc, area.center);
@@ -408,7 +427,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
       builder: (_) => NearestAreasSheet(
         onSelect: (area) {
           Navigator.pop(context);
-          _animatedMove(area.center, 16);
+          _animatedMove(area.center, 18);
           ref.read(selectedAreaProvider.notifier).state = area;
         },
       ),
