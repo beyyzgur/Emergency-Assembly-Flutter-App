@@ -68,3 +68,24 @@ flutter run
 `main` korumalıdır (doğrudan push yok, PR + 1 onay). Herkes kısa ömürlü feature
 branch'te çalışır: `feature/map-data`, `feature/map-presentation`, `feature/auth`,
 `feature/needs`, `feature/checkin`.
+## Rota profilleri
+
+Rota servisi anahtarsız OSRM uç noktalarıyla çalışır. Varsayılan profil gerçek
+yaya yollarını kullanan FOSSGIS OSRM-foot servisidir:
+
+```text
+https://routing.openstreetmap.de/routed-foot/route/v1/foot/
+```
+
+Araç seçeneği genel OSRM `driving` profilini kullanır:
+
+```text
+https://router.project-osrm.org/route/v1/driving/
+```
+
+Her iki istek de tüm sokak geometrisini GeoJSON olarak döndürür; bu nedenle
+haritada düz çizgi yerine sokakları izleyen rota çizilebilir. Bağlantı yoksa
+veya açık servis yanıt vermezse uygulama kapanmaz; iki noktalı düz çizgi ve
+seçilen profile göre süre tahmini döndürür. Açık uç noktalar ödev/demo amaçlı
+fair-use kullanıma uygundur; yoğun canlı trafik için yönetilen bir rota servisi
+tercih edilmelidir.
