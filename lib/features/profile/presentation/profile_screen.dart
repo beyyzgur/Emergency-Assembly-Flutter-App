@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../auth/data/auth_service.dart';
 
@@ -36,6 +38,19 @@ class ProfileScreen extends ConsumerWidget {
             leading: Icon(Icons.info_outline, color: AppColors.primary),
             title: Text('ATİS: Afet Toplanma Alanı İşaretleme Sistemi'),
             subtitle: Text('Sürüm 1.0.0'),
+          ),
+          const Divider(),
+
+          _sectionTitle('Güvenlik'),
+          ListTile(
+            leading: const Icon(
+              Icons.health_and_safety_outlined,
+              color: AppColors.primary,
+            ),
+            title: const Text('Durum Bildirimi'),
+            subtitle: const Text('10 dakikalık check-in başlat'),
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () => context.push('/checkin'),
           ),
           const Divider(),
 
