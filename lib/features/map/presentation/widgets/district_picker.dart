@@ -31,15 +31,21 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
         .where((d) => normalizeTr(d.name).contains(q))
         .toList();
     final hasManual = ref.watch(manualDistrictProvider) != null;
+    final screenH = MediaQuery.of(context).size.height;
+    final kb = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
+      // Klavye açılınca içerik yukarı itilir.
+      padding: EdgeInsets.only(bottom: kb),
       child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.6,
-        child: Column(
-          children: [
+        // Klavye kadar küçülsün ki toplam yükseklik ekranı doldurmasın.
+        height: (screenH * 0.55 - kb).clamp(260.0, screenH * 0.55),
+        child: GestureDetector(
+          // Boşluğa dokununca klavyeyi kapat.
+          behavior: HitTestBehavior.opaque,
+          onTap: () => FocusScope.of(context).unfocus(),
+          child: Column(
+            children: [
             // Manuel seçim aktifken ilk satır: GPS'e dön.
             if (hasManual) ...[
               ListTile(
@@ -82,6 +88,7 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
                     ),
             ),
           ],
+          ),
         ),
       ),
     );
