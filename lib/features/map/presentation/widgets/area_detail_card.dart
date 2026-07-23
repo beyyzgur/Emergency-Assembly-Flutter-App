@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/l10n.dart';
 import '../../domain/assembly_area.dart';
 
 /// Seçili toplanma alanının bilgi kartı (ad, kapasite, tür, ilçe).
@@ -47,7 +48,7 @@ class AreaDetailCard extends StatelessWidget {
                   icon: const Icon(Icons.close),
                   onPressed: onClose,
                   visualDensity: VisualDensity.compact,
-                  tooltip: 'Kapat',
+                  tooltip: context.l10n.close,
                 ),
               ],
             ),
@@ -56,8 +57,9 @@ class AreaDetailCard extends StatelessWidget {
               spacing: 18,
               runSpacing: 8,
               children: [
-                _info(Icons.groups, '${area.capacity} kişi kapasiteli'),
-                if (area.type.isNotEmpty) _info(Icons.category_outlined, area.type),
+                _info(Icons.groups, context.l10n.capacity(area.capacity)),
+                if (area.type.isNotEmpty)
+                  _info(Icons.category_outlined, area.type),
                 if (area.district.isNotEmpty)
                   _info(Icons.location_city_outlined, area.district),
               ],

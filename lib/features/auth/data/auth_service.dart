@@ -4,6 +4,19 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 final authServiceProvider = Provider((ref) => AuthService());
 
+enum AuthFailure {
+  unexpected,
+  userNotFound,
+  wrongCredentials,
+  invalidEmail,
+  userDisabled,
+  tooManyRequests,
+  network,
+  emailInUse,
+  weakPassword,
+  emailPasswordDisabled,
+}
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
@@ -20,18 +33,18 @@ class AuthService {
     await _auth.signInWithCredential(credential);
   }
 
-  Future<String?> signIn(String email, String password) async {
+  Future<AuthFailure?> signIn(String email, String password) async {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
       return null;
     } on FirebaseAuthException catch (e) {
-      return _signInErrorMessage(e);
+      return _signInFailure(e);
     } catch (_) {
-      return 'Beklenmeyen bir hata oluştu.';
+      return AuthFailure.unexpected;
     }
   }
 
-  Future<String?> registerWithEmail(String email, String password) async {
+  Future<AuthFailure?> registerWithEmail(String email, String password) async {
     try {
       await _auth.createUserWithEmailAndPassword(
         email: email,
@@ -41,40 +54,40 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'email-already-in-use':
-          return 'Bu e-posta adresiyle zaten bir hesap var.';
+          return AuthFailure.emailInUse;
         case 'invalid-email':
-          return 'Geçerli bir e-posta adresi girin.';
+          return AuthFailure.invalidEmail;
         case 'weak-password':
-          return 'Şifreniz en az 6 karakter olmalı.';
+          return AuthFailure.weakPassword;
         case 'operation-not-allowed':
-          return 'E-posta ile kayıt henüz etkinleştirilmemiş.';
+          return AuthFailure.emailPasswordDisabled;
         case 'network-request-failed':
-          return 'İnternet bağlantınızı kontrol edin.';
+          return AuthFailure.network;
         default:
-          return 'Kayıt oluşturulamadı: ${e.message ?? 'Bilinmeyen hata'}';
+          return AuthFailure.unexpected;
       }
     } catch (_) {
-      return 'Beklenmeyen bir hata oluştu.';
+      return AuthFailure.unexpected;
     }
   }
 
-  String _signInErrorMessage(FirebaseAuthException error) {
+  AuthFailure _signInFailure(FirebaseAuthException error) {
     switch (error.code) {
       case 'user-not-found':
-        return 'Bu e-posta adresiyle kayıtlı kullanıcı bulunamadı.';
+        return AuthFailure.userNotFound;
       case 'wrong-password':
       case 'invalid-credential':
-        return 'E-posta veya şifreniz hatalı.';
+        return AuthFailure.wrongCredentials;
       case 'invalid-email':
-        return 'Geçerli bir e-posta adresi girin.';
+        return AuthFailure.invalidEmail;
       case 'user-disabled':
-        return 'Bu kullanıcı hesabı devre dışı bırakılmış.';
+        return AuthFailure.userDisabled;
       case 'too-many-requests':
-        return 'Çok fazla deneme yapıldı. Lütfen biraz sonra tekrar deneyin.';
+        return AuthFailure.tooManyRequests;
       case 'network-request-failed':
-        return 'İnternet bağlantınızı kontrol edin.';
+        return AuthFailure.network;
       default:
-        return 'Giriş yapılamadı: ${error.message ?? 'Bilinmeyen hata'}';
+        return AuthFailure.unexpected;
     }
   }
 

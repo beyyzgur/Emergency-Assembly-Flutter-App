@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/checkin/presentation/check_in_foreground_listener.dart';
+import '../l10n/l10n.dart';
 
 class ScaffoldWithNavBar extends StatelessWidget {
   const ScaffoldWithNavBar({super.key, required this.navigationShell});
@@ -18,21 +19,21 @@ class ScaffoldWithNavBar extends StatelessWidget {
           index,
           initialLocation: index == navigationShell.currentIndex,
         ),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.map_outlined),
-            selectedIcon: Icon(Icons.map),
-            label: 'Harita',
+            icon: const Icon(Icons.map_outlined),
+            selectedIcon: const Icon(Icons.map),
+            label: context.l10n.navMap,
           ),
           NavigationDestination(
-            icon: Icon(Icons.volunteer_activism_outlined),
-            selectedIcon: Icon(Icons.volunteer_activism),
-            label: 'İhtiyaçlar',
+            icon: const Icon(Icons.volunteer_activism_outlined),
+            selectedIcon: const Icon(Icons.volunteer_activism),
+            label: context.l10n.navNeeds,
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Ayarlar',
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: context.l10n.navSettings,
           ),
         ],
       ),

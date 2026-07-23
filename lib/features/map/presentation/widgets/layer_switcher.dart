@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/map_layers.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/l10n.dart';
 import '../map_layer_provider.dart';
 
 class LayerSwitcher extends ConsumerStatefulWidget {
@@ -57,7 +58,10 @@ class _LayerSwitcherState extends ConsumerState<LayerSwitcher> {
                           setState(() => _open = false);
                         },
                         icon: Icon(layer.icon),
-                        label: SizedBox(width: 44, child: Text(layer.label)),
+                        label: SizedBox(
+                          width: 58,
+                          child: Text(_label(context, layer)),
+                        ),
                       ),
                     );
                   }).toList(),
@@ -80,5 +84,14 @@ class _LayerSwitcherState extends ConsumerState<LayerSwitcher> {
         ),
       ],
     );
+  }
+
+  String _label(BuildContext context, MapLayer layer) {
+    return switch (layer.type) {
+      MapLayerType.roadmap => context.l10n.mapLayerRoad,
+      MapLayerType.satellite => context.l10n.mapLayerSatellite,
+      MapLayerType.hybrid => context.l10n.mapLayerHybrid,
+      MapLayerType.osm => context.l10n.mapLayerOpenStreetMap,
+    };
   }
 }

@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/config/districts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/geo.dart';
+import '../../../l10n/l10n.dart';
 import '../domain/assembly_area.dart';
 import '../utils/distance_color.dart';
 import 'map_layer_provider.dart';
@@ -205,11 +206,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Afet Toplanma Haritası'),
+        title: Text(context.l10n.mapTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.format_list_bulleted),
-            tooltip: 'En yakın alanlar',
+            tooltip: context.l10n.nearestAreas,
             onPressed: _showNearestAreas,
           ),
         ],
@@ -316,22 +317,25 @@ class _MapScreenState extends ConsumerState<MapScreen>
             child: MapCompass(controller: _mapController),
           ),
           if (areasLoading)
-            const Positioned(
+            Positioned(
               top: 16,
               left: 16,
               child: Card(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
+                    children: <Widget>[
+                      const SizedBox(
                         width: 16,
                         height: 16,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ),
-                      SizedBox(width: 10),
-                      Text('Toplanma alanları yükleniyor...'),
+                      const SizedBox(width: 10),
+                      Text(context.l10n.loadingAssemblyAreas),
                     ],
                   ),
                 ),
@@ -439,8 +443,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
       margin: EdgeInsets.zero,
       child: ListTile(
         leading: const Icon(Icons.location_off),
-        title: const Text('Konum alınamadı'),
-        subtitle: const Text('Bulunduğunuz ilçeyi seçin'),
+        title: Text(context.l10n.locationUnavailable),
+        subtitle: Text(context.l10n.selectDistrict),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => showDistrictPicker(context),
       ),
@@ -450,7 +454,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   Widget _locationMarker(String? districtName) {
     final isManual = districtName != null;
     final pinColor = isManual ? AppColors.primary : AppColors.userLocation;
-    final label = districtName ?? 'Konumum';
+    final label = districtName ?? context.l10n.myLocation;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

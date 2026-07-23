@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 import '../data/check_in_controller.dart';
 import '../domain/check_in_state.dart';
 
@@ -16,7 +17,7 @@ class CheckInScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
       appBar: AppBar(
-        title: const Text('Durum Bildirimi'),
+        title: Text(context.l10n.checkIn),
         backgroundColor: Colors.white,
         foregroundColor: AppColors.primary,
         surfaceTintColor: Colors.white,
@@ -45,12 +46,12 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Yol durumunu güvenle paylaş',
-          style: TextStyle(
+          context.l10n.checkInHeader,
+          style: const TextStyle(
             color: AppColors.primary,
             fontSize: 25,
             fontWeight: FontWeight.w800,
@@ -58,8 +59,8 @@ class _Header extends StatelessWidget {
         ),
         SizedBox(height: 8),
         Text(
-          'Check-in başlattığında uygulama açıkken her 10 dakikada bir durumunu sorar.',
-          style: TextStyle(color: Color(0xFF65738A), height: 1.45),
+          context.l10n.checkInDescription,
+          style: const TextStyle(color: Color(0xFF65738A), height: 1.45),
         ),
       ],
     );
@@ -73,7 +74,7 @@ class _StatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final presentation = _presentationFor(state);
+    final presentation = _presentationFor(context, state);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -146,7 +147,7 @@ class _StatusCard extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Sonraki kontrol: ${_formatTime(state.nextCheckAt!)}',
+                    context.l10n.nextCheck(_formatTime(state.nextCheckAt!)),
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w600,
@@ -159,9 +160,9 @@ class _StatusCard extends StatelessWidget {
           if (state.hasActiveSession ||
               state.status == CheckInStatus.attentionRequired) ...[
             const SizedBox(height: 18),
-            const Text(
-              'Yanıtsız kontroller',
-              style: TextStyle(
+            Text(
+              context.l10n.unansweredChecks,
+              style: const TextStyle(
                 color: Color(0xFF65738A),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -193,51 +194,55 @@ class _StatusCard extends StatelessWidget {
     );
   }
 
-  _StatusPresentation _presentationFor(CheckInState state) {
+  _StatusPresentation _presentationFor(
+    BuildContext context,
+    CheckInState state,
+  ) {
     switch (state.status) {
       case CheckInStatus.active:
-        return const _StatusPresentation(
-          title: 'Check-in aktif',
-          subtitle: 'Yol durumun için bir sonraki kontrol bekleniyor.',
+        return _StatusPresentation(
+          title: context.l10n.checkInActive,
+          subtitle: context.l10n.checkInActiveSubtitle,
           icon: Icons.directions_walk_rounded,
           color: AppColors.accent,
         );
       case CheckInStatus.awaitingResponse:
-        return const _StatusPresentation(
-          title: 'Durum yanıtın bekleniyor',
-          subtitle: 'Yoldayım veya vardım bilgisini paylaş.',
+        return _StatusPresentation(
+          title: context.l10n.checkInResponsePending,
+          subtitle: context.l10n.checkInResponsePendingSubtitle,
           icon: Icons.notifications_active_outlined,
           color: Color(0xFFB26A00),
         );
       case CheckInStatus.paused:
-        return const _StatusPresentation(
-          title: 'Check-in bekletildi',
-          subtitle: 'Uygulamaya geri döndüğünde 10 dakika yeniden sayılır.',
+        return _StatusPresentation(
+          title: context.l10n.checkInPaused,
+          subtitle: context.l10n.checkInPausedSubtitle,
           icon: Icons.pause_circle_outline_rounded,
           color: Color(0xFF65738A),
         );
       case CheckInStatus.stopped:
         final arrived = state.stopReason == CheckInStopReason.arrived;
         return _StatusPresentation(
-          title: arrived ? 'Vardığın kaydedildi' : 'Check-in durduruldu',
+          title: arrived
+              ? context.l10n.checkInArrived
+              : context.l10n.checkInStopped,
           subtitle: arrived
-              ? 'Güvenli şekilde vardığını bildirdin.'
-              : 'İstediğinde yeni bir check-in başlatabilirsin.',
+              ? context.l10n.checkInArrivedSubtitle
+              : context.l10n.checkInStoppedSubtitle,
           icon: arrived ? Icons.verified_rounded : Icons.stop_circle_outlined,
           color: arrived ? AppColors.accent : const Color(0xFF65738A),
         );
       case CheckInStatus.attentionRequired:
-        return const _StatusPresentation(
-          title: '3 kontrol yanıtsız kaldı',
-          subtitle:
-              'Check-in güvenlik için durduruldu. Yeni bir oturum başlatabilirsin.',
+        return _StatusPresentation(
+          title: context.l10n.checkInAttentionTitle,
+          subtitle: context.l10n.checkInAttentionSubtitle,
           icon: Icons.warning_amber_rounded,
           color: AppColors.far,
         );
       case CheckInStatus.idle:
-        return const _StatusPresentation(
-          title: 'Check-in henüz başlamadı',
-          subtitle: 'Yola çıktığında durum kontrolünü başlatabilirsin.',
+        return _StatusPresentation(
+          title: context.l10n.checkInNotStarted,
+          subtitle: context.l10n.checkInNotStartedSubtitle,
           icon: Icons.shield_outlined,
           color: AppColors.primary,
         );
@@ -261,7 +266,7 @@ class _ActiveActions extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: controller.answerOnTheWay,
             icon: const Icon(Icons.directions_walk_rounded),
-            label: const Text('Yoldayım'),
+            label: Text(context.l10n.onTheWay),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
@@ -277,7 +282,7 @@ class _ActiveActions extends StatelessWidget {
           child: OutlinedButton.icon(
             onPressed: controller.markArrived,
             icon: const Icon(Icons.location_on_outlined),
-            label: const Text('Vardım'),
+            label: Text(context.l10n.arrived),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.accent,
               side: const BorderSide(color: AppColors.accent),
@@ -291,7 +296,7 @@ class _ActiveActions extends StatelessWidget {
         TextButton.icon(
           onPressed: controller.stop,
           icon: const Icon(Icons.stop_circle_outlined),
-          label: const Text('Check-in’i durdur'),
+          label: Text(context.l10n.stopCheckIn),
           style: TextButton.styleFrom(foregroundColor: AppColors.far),
         ),
       ],
@@ -312,7 +317,7 @@ class _StartActions extends StatelessWidget {
       child: FilledButton.icon(
         onPressed: controller.start,
         icon: const Icon(Icons.play_arrow_rounded),
-        label: const Text('10 dakikalık check-in başlat'),
+        label: Text(context.l10n.startCheckIn),
         style: FilledButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
@@ -336,15 +341,15 @@ class _ForegroundInfo extends StatelessWidget {
         color: const Color(0xFFEAF1FA),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(Icons.info_outline_rounded, color: AppColors.primary),
           SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Bu sürüm yalnızca uygulama açıkken çalışır. Uygulama arka plana geçtiğinde sayaç bekletilir.',
-              style: TextStyle(color: AppColors.primary, height: 1.4),
+              context.l10n.foregroundOnly,
+              style: const TextStyle(color: AppColors.primary, height: 1.4),
             ),
           ),
         ],

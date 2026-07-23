@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/l10n.dart';
 
 class AuthBrandHeader extends StatelessWidget {
   const AuthBrandHeader({super.key, this.showTagline = true});
@@ -13,7 +14,7 @@ class AuthBrandHeader extends StatelessWidget {
       children: [
         Semantics(
           image: true,
-          label: 'ATİS - Afet Toplanma Alanı İşaretleme Sistemi logosu',
+          label: context.l10n.brandLogoLabel,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(18),
             child: Image.asset(
@@ -25,8 +26,8 @@ class AuthBrandHeader extends StatelessWidget {
         ),
         if (showTagline) ...[
           const SizedBox(height: 8),
-          const Text(
-            'Her nokta bir güven, her işaret bir hayat.',
+          Text(
+            context.l10n.brandTagline,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.primary,
