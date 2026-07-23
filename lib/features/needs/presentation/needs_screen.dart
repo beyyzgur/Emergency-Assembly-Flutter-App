@@ -136,22 +136,30 @@ class NeedsScreen extends ConsumerWidget {
   }
 
   Future<void> _syncOffline(BuildContext context, WidgetRef ref) async {
-    final isSuccess = await ref.read(syncServiceProvider).syncOfflineNeeds();
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isSuccess
-                ? context.l10n.offlineSyncSuccess
-                : context.l10n.offlineSyncFailure,
-          ),
-          backgroundColor: isSuccess
-              ? Colors.green.shade800
-              : Colors.orange.shade800,
-          behavior: SnackBarBehavior.floating,
+    final result = await ref.read(syncServiceProvider).syncOfflineNeeds();
+
+    // Kullanıcının aktarılmayı bekleyen offline kaydı yoksa yenileme sessiz
+    // tamamlanır. Bu normal bir durumdur ve hata mesajı gösterilmemelidir.
+    if (!context.mounted || result == OfflineSyncResult.noPendingNeeds) return;
+
+    final isSuccess = result == OfflineSyncResult.synced;
+    final backgroundColor = isSuccess
+        ? Colors.green.shade800
+        : const Color(0xFFB3E5FC);
+    final textColor = isSuccess ? Colors.white : AppColors.primary;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isSuccess
+              ? context.l10n.offlineSyncSuccess
+              : context.l10n.offlineSyncFailure,
+          style: TextStyle(color: textColor),
         ),
-      );
-    }
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override

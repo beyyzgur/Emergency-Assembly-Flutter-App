@@ -392,7 +392,8 @@ class AppLocalizationsTr extends AppLocalizations {
   String get offlineSyncSuccess => 'Tüm veriler başarıyla buluta aktarıldı!';
 
   @override
-  String get offlineSyncFailure => 'Aktarılacak veri yok veya bağlantı hatası.';
+  String get offlineSyncFailure =>
+      'Offline ihtiyaçlar aktarılamadı. Bağlantınızı kontrol edip tekrar deneyin.';
 
   @override
   String get needsLoadError => 'Veriler çekilirken bir hata oluştu.';

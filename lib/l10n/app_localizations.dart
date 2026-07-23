@@ -815,7 +815,7 @@ abstract class AppLocalizations {
   /// No description provided for @offlineSyncFailure.
   ///
   /// In en, this message translates to:
-  /// **'There is no data to upload or there was a connection error.'**
+  /// **'Offline needs could not be sent. Check your connection and try again.'**
   String get offlineSyncFailure;
 
   /// No description provided for @needsLoadError.

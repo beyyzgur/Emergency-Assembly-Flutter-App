@@ -125,7 +125,7 @@
   "needDeleted": "Need record was deleted successfully.",
   "confirmDelete": "Yes, delete",
   "offlineSyncSuccess": "All data was uploaded to the cloud successfully.",
-  "offlineSyncFailure": "There is no data to upload or there was a connection error.",
+  "offlineSyncFailure": "Offline needs could not be sent. Check your connection and try again.",
   "needsLoadError": "An error occurred while loading the records.",
   "noNeedsYet": "No needs have been recorded yet.",
   "untitledNeed": "Untitled",

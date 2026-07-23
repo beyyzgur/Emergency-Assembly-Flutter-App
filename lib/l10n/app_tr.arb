@@ -125,7 +125,7 @@
   "needDeleted": "İhtiyaç kaydı başarıyla silindi.",
   "confirmDelete": "Evet, Sil",
   "offlineSyncSuccess": "Tüm veriler başarıyla buluta aktarıldı!",
-  "offlineSyncFailure": "Aktarılacak veri yok veya bağlantı hatası.",
+  "offlineSyncFailure": "Offline ihtiyaçlar aktarılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
   "needsLoadError": "Veriler çekilirken bir hata oluştu.",
   "noNeedsYet": "Henüz bir ihtiyaç kaydedilmemiş.",
   "untitledNeed": "Başlıksız",

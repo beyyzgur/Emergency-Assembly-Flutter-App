@@ -397,7 +397,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get offlineSyncFailure =>
-      'There is no data to upload or there was a connection error.';
+      'Offline needs could not be sent. Check your connection and try again.';
 
   @override
   String get needsLoadError => 'An error occurred while loading the records.';
