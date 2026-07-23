@@ -7,16 +7,12 @@ import 'assembly_areas_provider.dart';
 import 'map_zoom_provider.dart';
 import 'map_bounds_provider.dart';
 
-/// Clustering sonucu: hâlâ toplu olanlar (cluster) + çözülmüş olanlar (poligon).
 class ClusteringResult {
   final List<ClusterModel> clusters;
   final List<AssemblyArea> polygons;
   const ClusteringResult(this.clusters, this.polygons);
 }
 
-/// Ekrandaki toplanma alanlarını zoom'a göre grid ile gruplar:
-/// aynı hücrede birden fazla alan → cluster; tek alan → poligon.
-/// Sadece viewport'takiler işlenir → 9063 alanla bile hızlı ve az çizim.
 final clusteringProvider = Provider<ClusteringResult>((ref) {
   final areas = ref.watch(assemblyAreasProvider).valueOrNull;
   final zoom = ref.watch(mapZoomProvider);
@@ -25,16 +21,18 @@ final clusteringProvider = Provider<ClusteringResult>((ref) {
     return const ClusteringResult([], []);
   }
 
-  // 1) Sadece görünür alandakiler
   final inView = <AssemblyArea>[];
   for (final a in areas) {
     if (bounds.contains(a.center)) inView.add(a);
   }
 
-  // 2) Grid hücre boyutu (derece) — zoom arttıkça küçülür, cluster'lar bölünür
+  const declusterZoom = 16.0;
+  if (zoom >= declusterZoom) {
+    return ClusteringResult(const [], inView);
+  }
+
   final cellDeg = 0.08 / math.pow(2, zoom - 11);
 
-  // 3) Alanları hücrelere dağıt
   final cells = <String, List<AssemblyArea>>{};
   for (final a in inView) {
     final gx = (a.center.longitude / cellDeg).floor();
@@ -42,7 +40,6 @@ final clusteringProvider = Provider<ClusteringResult>((ref) {
     (cells['$gx:$gy'] ??= <AssemblyArea>[]).add(a);
   }
 
-  // 4) Tek alan → poligon; çok alan → cluster
   final clusters = <ClusterModel>[];
   final polygons = <AssemblyArea>[];
   for (final group in cells.values) {

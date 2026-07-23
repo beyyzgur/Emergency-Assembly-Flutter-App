@@ -22,12 +22,18 @@ class _LayerSwitcherState extends ConsumerState<LayerSwitcher> {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AnimatedSize(
+        AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
-          curve: Curves.easeInOut,
-          alignment: Alignment.bottomLeft,
+          switchInCurve: Curves.easeOut,
+          switchOutCurve: Curves.easeIn,
+          transitionBuilder: (child, animation) => SizeTransition(
+            sizeFactor: animation,
+            alignment: Alignment.bottomCenter,
+            child: FadeTransition(opacity: animation, child: child),
+          ),
           child: _open
               ? Column(
+                  key: const ValueKey('layers-open'),
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: kMapLayers.map((layer) {
@@ -37,6 +43,9 @@ class _LayerSwitcherState extends ConsumerState<LayerSwitcher> {
                       child: FloatingActionButton.extended(
                         heroTag: 'layer_${layer.type}',
                         elevation: 2,
+                        extendedPadding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                        ),
                         backgroundColor: isSelected
                             ? AppColors.primary
                             : Colors.white,
@@ -48,12 +57,12 @@ class _LayerSwitcherState extends ConsumerState<LayerSwitcher> {
                           setState(() => _open = false);
                         },
                         icon: Icon(layer.icon),
-                        label: Text(layer.label),
+                        label: SizedBox(width: 44, child: Text(layer.label)),
                       ),
                     );
                   }).toList(),
                 )
-              : const SizedBox.shrink(),
+              : const SizedBox.shrink(key: ValueKey('layers-closed')),
         ),
         // Ana buton
         FloatingActionButton(
