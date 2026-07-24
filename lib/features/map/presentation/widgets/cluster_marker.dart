@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/theme/app_colors.dart';
 
-/// Bir cluster'ı temsil eden rozet: lacivert daire + içinde nokta sayısı.
-/// Belirirken bir kez yumuşakça büyür/görünür (tek seferlik → sürekli çalışmaz).
 class ClusterBadge extends StatelessWidget {
   const ClusterBadge({super.key, required this.count, required this.onTap});
 
@@ -17,7 +14,6 @@ class ClusterBadge extends StatelessWidget {
         ? 46
         : 40;
 
-    // Belirirken bir kez 0→1 oynar, sonra durur (her karede değil)
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: const Duration(milliseconds: 180),
@@ -34,7 +30,7 @@ class ClusterBadge extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: AppColors.primary,
+            color: const Color.fromRGBO(129, 166, 198, 1),
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white, width: 2.5),
             boxShadow: [

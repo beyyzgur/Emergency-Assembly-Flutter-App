@@ -5,16 +5,18 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/turkish.dart';
 import '../location_providers.dart';
 
-void showDistrictPicker(BuildContext context) {
+void showDistrictPicker(BuildContext context, {VoidCallback? onPickFromMap}) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
-    builder: (_) => const DistrictPickerSheet(),
+    builder: (_) => DistrictPickerSheet(onPickFromMap: onPickFromMap),
   );
 }
 
 class DistrictPickerSheet extends ConsumerStatefulWidget {
-  const DistrictPickerSheet({super.key});
+  const DistrictPickerSheet({super.key, this.onPickFromMap});
+
+  final VoidCallback? onPickFromMap;
 
   @override
   ConsumerState<DistrictPickerSheet> createState() =>
@@ -30,64 +32,76 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
     final filtered = kAnkaraDistricts
         .where((d) => normalizeTr(d.name).contains(q))
         .toList();
-    final hasManual = ref.watch(manualDistrictProvider) != null;
+    final hasManual =
+        ref.watch(manualDistrictProvider) != null ||
+        ref.watch(manualPointProvider) != null;
     final screenH = MediaQuery.of(context).size.height;
     final kb = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
-      // Klavye açılınca içerik yukarı itilir.
       padding: EdgeInsets.only(bottom: kb),
       child: SizedBox(
-        // Klavye kadar küçülsün ki toplam yükseklik ekranı doldurmasın.
         height: (screenH * 0.55 - kb).clamp(260.0, screenH * 0.55),
         child: GestureDetector(
-          // Boşluğa dokununca klavyeyi kapat.
           behavior: HitTestBehavior.opaque,
           onTap: () => FocusScope.of(context).unfocus(),
           child: Column(
             children: [
-            // Manuel seçim aktifken ilk satır: GPS'e dön.
-            if (hasManual) ...[
-              ListTile(
-                leading: const Icon(Icons.gps_fixed, color: AppColors.accent),
-                title: const Text('GPS Konumuna dön'),
-                subtitle: const Text('Manuel seçimi kaldır'),
-                onTap: () {
-                  ref.read(manualDistrictProvider.notifier).state = null;
-                  Navigator.pop(context);
-                },
-              ),
-              const Divider(height: 1),
-            ],
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: TextField(
-                decoration: const InputDecoration(
-                  hintText: 'İlçe ara...',
-                  prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
+              if (hasManual)
+                ListTile(
+                  leading: const Icon(Icons.gps_fixed, color: AppColors.accent),
+                  title: const Text('GPS Konumuna dön'),
+                  subtitle: const Text('Manuel seçimi kaldır'),
+                  onTap: () {
+                    ref.read(manualDistrictProvider.notifier).state = null;
+                    ref.read(manualPointProvider.notifier).state = null;
+                    Navigator.pop(context);
+                  },
                 ),
-                onChanged: (v) => setState(() => _query = v),
+              if (widget.onPickFromMap != null)
+                ListTile(
+                  leading: const Icon(Icons.touch_app, color: AppColors.accent),
+                  title: const Text('Haritadan seç'),
+                  subtitle: const Text('Başlangıç için haritaya dokun'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    widget.onPickFromMap!();
+                  },
+                ),
+              if (hasManual || widget.onPickFromMap != null)
+                const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: TextField(
+                  decoration: const InputDecoration(
+                    hintText: 'İlçe ara...',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (v) => setState(() => _query = v),
+                ),
               ),
-            ),
-            Expanded(
-              child: filtered.isEmpty
-                  ? const Center(child: Text('İlçe bulunamadı'))
-                  : ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (context, i) {
-                        final d = filtered[i];
-                        return ListTile(
-                          title: Text(d.name),
-                          onTap: () {
-                            ref.read(manualDistrictProvider.notifier).state = d;
-                            Navigator.pop(context);
-                          },
-                        );
-                      },
-                    ),
-            ),
-          ],
+              Expanded(
+                child: filtered.isEmpty
+                    ? const Center(child: Text('İlçe bulunamadı'))
+                    : ListView.builder(
+                        itemCount: filtered.length,
+                        itemBuilder: (context, i) {
+                          final d = filtered[i];
+                          return ListTile(
+                            title: Text(d.name),
+                            onTap: () {
+                              ref.read(manualPointProvider.notifier).state =
+                                  null;
+                              ref.read(manualDistrictProvider.notifier).state =
+                                  d;
+                              Navigator.pop(context);
+                            },
+                          );
+                        },
+                      ),
+              ),
+            ],
           ),
         ),
       ),
