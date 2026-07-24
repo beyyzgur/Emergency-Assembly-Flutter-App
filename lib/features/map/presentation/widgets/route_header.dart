@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/l10n.dart';
 
 class RouteHeader extends StatelessWidget {
   const RouteHeader({
@@ -34,7 +35,7 @@ class RouteHeader extends StatelessWidget {
                   _row(
                     icon: Icons.my_location,
                     iconColor: AppColors.userLocation,
-                    label: 'Başlangıç',
+                    label: context.l10n.routeOrigin,
                     value: fromLabel,
                     onTap: onEditFrom,
                   ),
@@ -42,7 +43,7 @@ class RouteHeader extends StatelessWidget {
                   _row(
                     icon: Icons.place,
                     iconColor: AppColors.far,
-                    label: 'Hedef',
+                    label: context.l10n.routeDestination,
                     value: toLabel,
                     onTap: onEditTo,
                   ),

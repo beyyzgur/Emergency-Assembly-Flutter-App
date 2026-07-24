@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../data/offline_storage_service.dart';
 import '../../auth/data/needs_repository.dart';
 import '../domain/need_model.dart';
+import '../../../l10n/l10n.dart';
 
 class AddNeedScreen extends ConsumerStatefulWidget {
   // Düzenleme işlemi için opsiyonel model eklendi
@@ -66,10 +67,7 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
 
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
-      _showSnackBar(
-        'Hata: Oturum açmış bir kullanıcı bulunamadı.',
-        isError: true,
-      );
+      _showSnackBar(context.l10n.noSignedInUser, isError: true);
       return;
     }
 
@@ -109,9 +107,7 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
 
         if (mounted) {
           _showSnackBar(
-            isEditing
-                ? 'Talebiniz başarıyla güncellendi! ✏️'
-                : 'İhtiyaç talebi başarıyla iletildi! 🚀',
+            isEditing ? context.l10n.needUpdated : context.l10n.needSubmitted,
           );
           Navigator.pop(context);
         }
@@ -120,15 +116,12 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
           // Sadece yeni kayıtlarda offline yedek alınıyor
           await ref.read(offlineStorageProvider).saveNeed(currentNeed);
           if (mounted) {
-            _showSnackBar('İnternet yok! Kayıt cihaza alındı. 📡', duration: 4);
+            _showSnackBar(context.l10n.offlineNeedSaved, duration: 4);
             Navigator.pop(context);
           }
         } else {
           if (mounted) {
-            _showSnackBar(
-              'Güncelleme için internet bağlantısı gerekiyor.',
-              isError: true,
-            );
+            _showSnackBar(context.l10n.updateRequiresInternet, isError: true);
           }
         }
       }
@@ -147,10 +140,6 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
         duration: Duration(seconds: duration),
       ),
     );
-  }
-
-  void _dismissKeyboard() {
-    FocusManager.instance.primaryFocus?.unfocus();
   }
 
   InputDecoration _customInputDecoration(String label, IconData icon) {
@@ -174,6 +163,38 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
     );
   }
 
+  String _categoryLabel(BuildContext context, String category) {
+    switch (category) {
+      case 'Su':
+        return context.l10n.categoryWater;
+      case 'Erzak':
+        return context.l10n.categoryFood;
+      case 'Barınma':
+        return context.l10n.categoryShelter;
+      case 'Sağlık':
+        return context.l10n.categoryHealth;
+      default:
+        return context.l10n.categoryOther;
+    }
+  }
+
+  String _urgencyLabel(BuildContext context, String urgency) {
+    switch (urgency) {
+      case 'Düşük':
+        return context.l10n.urgencyLow;
+      case 'Orta':
+        return context.l10n.urgencyMedium;
+      case 'Yüksek':
+        return context.l10n.urgencyHigh;
+      default:
+        return context.l10n.urgencyCritical;
+    }
+  }
+
+  void _dismissKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existingNeed != null;
@@ -181,7 +202,9 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: Text(
-          isEditing ? 'Talebi Düzenle' : 'Yeni İhtiyaç Talebi',
+          isEditing
+              ? context.l10n.editNeedRequest
+              : context.l10n.newNeedRequest,
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             letterSpacing: 0.5,
@@ -201,11 +224,11 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16.0),
               children: [
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(left: 8, bottom: 8),
                   child: Text(
-                    'TEMEL BİLGİLER',
-                    style: TextStyle(
+                    context.l10n.basicInformation,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey,
@@ -224,33 +247,35 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                         TextFormField(
                           controller: _titleController,
                           decoration: _customInputDecoration(
-                            'İhtiyaç Başlığı',
+                            context.l10n.needTitle,
                             Icons.title,
                           ),
-                          validator: (v) =>
-                              v!.isEmpty ? 'Lütfen bir başlık girin' : null,
+                          validator: (v) => v!.isEmpty
+                              ? context.l10n.needTitleRequired
+                              : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _descController,
                           maxLines: 3,
                           decoration: _customInputDecoration(
-                            'Detaylı Açıklama',
+                            context.l10n.detailedDescription,
                             Icons.description,
                           ),
-                          validator: (v) =>
-                              v!.isEmpty ? 'Lütfen bir açıklama girin' : null,
+                          validator: (v) => v!.isEmpty
+                              ? context.l10n.needDescriptionRequired
+                              : null,
                         ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(left: 8, bottom: 8),
                   child: Text(
-                    'KAPSAM VE ACİLİYET',
-                    style: TextStyle(
+                    context.l10n.scopeAndUrgency,
+                    style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
                       color: Colors.blueGrey,
@@ -272,14 +297,14 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                               child: DropdownButtonFormField<String>(
                                 initialValue: _selectedCategory,
                                 decoration: _customInputDecoration(
-                                  'Kategori',
+                                  context.l10n.category,
                                   Icons.category,
                                 ),
                                 items: _categories
                                     .map(
                                       (c) => DropdownMenuItem(
                                         value: c,
-                                        child: Text(c),
+                                        child: Text(_categoryLabel(context, c)),
                                       ),
                                     )
                                     .toList(),
@@ -296,11 +321,12 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                                   FilteringTextInputFormatter.digitsOnly,
                                 ],
                                 decoration: _customInputDecoration(
-                                  'Kişi Sayısı',
+                                  context.l10n.peopleCount,
                                   Icons.groups,
                                 ),
-                                validator: (v) =>
-                                    v!.isEmpty ? 'Boş bırakılamaz' : null,
+                                validator: (v) => v!.isEmpty
+                                    ? context.l10n.peopleCountRequired
+                                    : null,
                               ),
                             ),
                           ],
@@ -309,13 +335,15 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                         DropdownButtonFormField<String>(
                           initialValue: _selectedUrgency,
                           decoration: _customInputDecoration(
-                            'Aciliyet Durumu',
+                            context.l10n.urgencyStatus,
                             Icons.warning_amber_rounded,
                           ),
                           items: _urgencies
                               .map(
-                                (u) =>
-                                    DropdownMenuItem(value: u, child: Text(u)),
+                                (u) => DropdownMenuItem(
+                                  value: u,
+                                  child: Text(_urgencyLabel(context, u)),
+                                ),
                               )
                               .toList(),
                           onChanged: (v) =>
@@ -343,8 +371,10 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
                         ),
                   label: Text(
                     _isLoading
-                        ? 'Kaydediliyor...'
-                        : (isEditing ? 'Değişiklikleri Kaydet' : 'Talebi İlet'),
+                        ? context.l10n.saving
+                        : (isEditing
+                              ? context.l10n.saveChanges
+                              : context.l10n.submitNeed),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

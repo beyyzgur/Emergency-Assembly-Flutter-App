@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 import '../data/auth_service.dart';
+import 'auth_failure_message.dart';
 import 'widgets/auth_brand.dart';
 
 enum _LoginMethod { email, google }
@@ -37,7 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
 
     setState(() => _activeMethod = _LoginMethod.email);
-    final errorMessage = await ref
+    final failure = await ref
         .read(authServiceProvider)
         .signIn(_emailController.text.trim(), _passwordController.text);
 
@@ -46,8 +48,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
     setState(() => _activeMethod = null);
 
-    if (errorMessage != null) {
-      _showMessage(errorMessage);
+    if (failure != null) {
+      _showMessage(failure.localizedMessage(context.l10n));
       return;
     }
 
@@ -65,7 +67,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       context.go('/map');
     } catch (_) {
       if (mounted) {
-        _showMessage('Google ile giriş şu an tamamlanamadı. Tekrar deneyin.');
+        _showMessage(context.l10n.googleSignInFailed);
       }
     } finally {
       if (mounted) {
@@ -130,18 +132,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                             ),
                             const SizedBox(height: 22),
-                            const Text(
-                              'Güvenli giriş',
-                              style: TextStyle(
+                            Text(
+                              context.l10n.secureSignIn,
+                              style: const TextStyle(
                                 color: AppColors.primary,
                                 fontSize: 24,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Toplanma alanlarına ve ihtiyaç kayıtlarına erişmek için hesabınla devam et.',
-                              style: TextStyle(
+                            Text(
+                              context.l10n.loginSubtitle,
+                              style: const TextStyle(
                                 color: Color(0xFF65738A),
                                 height: 1.45,
                               ),
@@ -154,16 +156,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.username],
                               decoration: _inputDecoration(
-                                label: 'E-posta adresi',
+                                label: context.l10n.emailAddress,
                                 icon: Icons.mail_outline_rounded,
                               ),
                               validator: (value) {
                                 final email = value?.trim() ?? '';
                                 if (email.isEmpty) {
-                                  return 'E-posta adresinizi girin.';
+                                  return context.l10n.emailRequired;
                                 }
                                 if (!email.contains('@')) {
-                                  return 'Geçerli bir e-posta girin.';
+                                  return context.l10n.emailInvalid;
                                 }
                                 return null;
                               },
@@ -177,12 +179,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               autofillHints: const [AutofillHints.password],
                               onFieldSubmitted: (_) => _loginWithEmail(),
                               decoration: _inputDecoration(
-                                label: 'Şifre',
+                                label: context.l10n.password,
                                 icon: Icons.lock_outline_rounded,
                                 suffix: IconButton(
                                   tooltip: _isPasswordVisible
-                                      ? 'Şifreyi gizle'
-                                      : 'Şifreyi göster',
+                                      ? context.l10n.hidePassword
+                                      : context.l10n.showPassword,
                                   onPressed: _isLoading
                                       ? null
                                       : () => setState(
@@ -198,7 +200,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ),
                               validator: (value) {
                                 if ((value ?? '').isEmpty) {
-                                  return 'Şifrenizi girin.';
+                                  return context.l10n.passwordRequired;
                                 }
                                 return null;
                               },
@@ -224,9 +226,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                           strokeWidth: 2.5,
                                         ),
                                       )
-                                    : const Text(
-                                        'Giriş Yap',
-                                        style: TextStyle(
+                                    : Text(
+                                        context.l10n.login,
+                                        style: const TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w700,
                                         ),
@@ -237,10 +239,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Wrap(
                               alignment: WrapAlignment.center,
                               crossAxisAlignment: WrapCrossAlignment.center,
+                              spacing: 4,
                               children: [
-                                const Text(
-                                  'Henüz hesabın yok mu?',
-                                  style: TextStyle(
+                                Text(
+                                  context.l10n.noAccount,
+                                  style: const TextStyle(
                                     color: Color(0xFF65738A),
                                     fontSize: 13,
                                   ),
@@ -249,9 +252,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   onPressed: _isLoading
                                       ? null
                                       : () => context.go('/register'),
-                                  child: const Text(
-                                    'Kayıt ol',
-                                    style: TextStyle(
+                                  child: Text(
+                                    context.l10n.signUp,
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.w700,
                                     ),
                                   ),
@@ -259,14 +262,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            const Row(
+                            Row(
                               children: [
                                 Expanded(child: Divider()),
                                 Padding(
                                   padding: EdgeInsets.symmetric(horizontal: 12),
                                   child: Text(
-                                    'veya',
-                                    style: TextStyle(color: Color(0xFF8A96A8)),
+                                    context.l10n.or,
+                                    style: const TextStyle(
+                                      color: Color(0xFF8A96A8),
+                                    ),
                                   ),
                                 ),
                                 Expanded(child: Divider()),
@@ -301,8 +306,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                       ),
                                 label: Text(
                                   _activeMethod == _LoginMethod.google
-                                      ? 'Google hesabı açılıyor...'
-                                      : 'Google ile devam et',
+                                      ? context.l10n.googleSigningIn
+                                      : context.l10n.continueWithGoogle,
                                   style: const TextStyle(
                                     fontSize: 15,
                                     fontWeight: FontWeight.w600,
@@ -314,10 +319,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                       ),
                       const SizedBox(height: 14),
-                      const Text(
-                        'Acil durumlarda hızlı erişim için bilgilerin güvenle saklanır.',
+                      Text(
+                        context.l10n.authDataSecurityNote,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Color(0xFF8A96A8),
                           fontSize: 12,
                         ),

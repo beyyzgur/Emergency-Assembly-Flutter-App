@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/config/districts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/turkish.dart';
+import '../../../../l10n/l10n.dart';
 import '../location_providers.dart';
 
 void showDistrictPicker(BuildContext context, {VoidCallback? onPickFromMap}) {
@@ -50,8 +51,8 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
               if (hasManual)
                 ListTile(
                   leading: const Icon(Icons.gps_fixed, color: AppColors.accent),
-                  title: const Text('GPS Konumuna dön'),
-                  subtitle: const Text('Manuel seçimi kaldır'),
+                  title: Text(context.l10n.returnToGps),
+                  subtitle: Text(context.l10n.clearManualSelection),
                   onTap: () {
                     ref.read(manualDistrictProvider.notifier).state = null;
                     ref.read(manualPointProvider.notifier).state = null;
@@ -61,8 +62,8 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
               if (widget.onPickFromMap != null)
                 ListTile(
                   leading: const Icon(Icons.touch_app, color: AppColors.accent),
-                  title: const Text('Haritadan seç'),
-                  subtitle: const Text('Başlangıç için haritaya dokun'),
+                  title: Text(context.l10n.pickOnMap),
+                  subtitle: Text(context.l10n.tapMapForStart),
                   onTap: () {
                     Navigator.pop(context);
                     widget.onPickFromMap!();
@@ -73,17 +74,17 @@ class _DistrictPickerSheetState extends ConsumerState<DistrictPickerSheet> {
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: TextField(
-                  decoration: const InputDecoration(
-                    hintText: 'İlçe ara...',
-                    prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
+                  decoration: InputDecoration(
+                    hintText: context.l10n.searchDistrict,
+                    prefixIcon: const Icon(Icons.search),
+                    border: const OutlineInputBorder(),
                   ),
                   onChanged: (v) => setState(() => _query = v),
                 ),
               ),
               Expanded(
                 child: filtered.isEmpty
-                    ? const Center(child: Text('İlçe bulunamadı'))
+                    ? Center(child: Text(context.l10n.districtNotFound))
                     : ListView.builder(
                         itemCount: filtered.length,
                         itemBuilder: (context, i) {

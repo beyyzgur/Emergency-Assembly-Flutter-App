@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 import '../data/auth_service.dart';
+import 'auth_failure_message.dart';
 import 'widgets/auth_brand.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -36,7 +38,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
 
     setState(() => _isLoading = true);
-    final errorMessage = await ref
+    final failure = await ref
         .read(authServiceProvider)
         .registerWithEmail(
           _emailController.text.trim(),
@@ -48,10 +50,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     }
     setState(() => _isLoading = false);
 
-    if (errorMessage != null) {
+    if (failure != null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
+          content: Text(failure.localizedMessage(context.l10n)),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -79,7 +81,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: IconButton(
-                        tooltip: 'Giriş ekranına dön',
+                        tooltip: context.l10n.backToLogin,
                         onPressed: _isLoading
                             ? null
                             : () => context.go('/login'),
@@ -114,18 +116,18 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                           ),
                           const SizedBox(height: 22),
-                          const Text(
-                            'Hesap oluştur',
-                            style: TextStyle(
+                          Text(
+                            context.l10n.createAccount,
+                            style: const TextStyle(
                               color: AppColors.primary,
                               fontSize: 24,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 6),
-                          const Text(
-                            'Acil durumlarda ihtiyaç bilgilerine hızlıca ulaşmak için kaydol.',
-                            style: TextStyle(
+                          Text(
+                            context.l10n.registerSubtitle,
+                            style: const TextStyle(
                               color: Color(0xFF65738A),
                               height: 1.45,
                             ),
@@ -138,16 +140,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.email],
                             decoration: _inputDecoration(
-                              label: 'E-posta adresi',
+                              label: context.l10n.emailAddress,
                               icon: Icons.mail_outline_rounded,
                             ),
                             validator: (value) {
                               final email = value?.trim() ?? '';
                               if (email.isEmpty) {
-                                return 'E-posta adresinizi girin.';
+                                return context.l10n.emailRequired;
                               }
                               if (!email.contains('@')) {
-                                return 'Geçerli bir e-posta girin.';
+                                return context.l10n.emailInvalid;
                               }
                               return null;
                             },
@@ -160,11 +162,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.newPassword],
                             decoration: _inputDecoration(
-                              label: 'Şifre',
+                              label: context.l10n.password,
                               icon: Icons.lock_outline_rounded,
-                              helperText: 'En az 6 karakter kullanın.',
+                              helperText: context.l10n.passwordMinimumHint,
                               suffix: _visibilityButton(
                                 isVisible: _isPasswordVisible,
+                                tooltip: _isPasswordVisible
+                                    ? context.l10n.hidePassword
+                                    : context.l10n.showPassword,
                                 onPressed: () => setState(
                                   () =>
                                       _isPasswordVisible = !_isPasswordVisible,
@@ -173,7 +178,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                             validator: (value) {
                               if ((value?.length ?? 0) < 6) {
-                                return 'Şifreniz en az 6 karakter olmalı.';
+                                return context.l10n.passwordMinimumError;
                               }
                               return null;
                             },
@@ -187,10 +192,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             autofillHints: const [AutofillHints.newPassword],
                             onFieldSubmitted: (_) => _register(),
                             decoration: _inputDecoration(
-                              label: 'Şifre tekrar',
+                              label: context.l10n.confirmPassword,
                               icon: Icons.lock_reset_rounded,
                               suffix: _visibilityButton(
                                 isVisible: _isConfirmPasswordVisible,
+                                tooltip: _isConfirmPasswordVisible
+                                    ? context.l10n.hidePassword
+                                    : context.l10n.showPassword,
                                 onPressed: () => setState(
                                   () => _isConfirmPasswordVisible =
                                       !_isConfirmPasswordVisible,
@@ -199,7 +207,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ),
                             validator: (value) {
                               if (value != _passwordController.text) {
-                                return 'Şifreler birbiriyle eşleşmiyor.';
+                                return context.l10n.passwordMismatch;
                               }
                               return null;
                             },
@@ -225,9 +233,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                         strokeWidth: 2.5,
                                       ),
                                     )
-                                  : const Text(
-                                      'Hesap oluştur',
-                                      style: TextStyle(
+                                  : Text(
+                                      context.l10n.createAccount,
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -241,17 +249,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          'Zaten hesabın var mı?',
-                          style: TextStyle(color: Color(0xFF65738A)),
+                        Text(
+                          context.l10n.alreadyAccount,
+                          style: const TextStyle(color: Color(0xFF65738A)),
                         ),
                         TextButton(
                           onPressed: _isLoading
                               ? null
                               : () => context.go('/login'),
-                          child: const Text(
-                            'Giriş yap',
-                            style: TextStyle(fontWeight: FontWeight.w700),
+                          child: Text(
+                            context.l10n.login,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),
                       ],
@@ -268,10 +276,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
   IconButton _visibilityButton({
     required bool isVisible,
+    required String tooltip,
     required VoidCallback onPressed,
   }) {
     return IconButton(
-      tooltip: isVisible ? 'Şifreyi gizle' : 'Şifreyi göster',
+      tooltip: tooltip,
       onPressed: _isLoading ? null : onPressed,
       icon: Icon(
         isVisible ? Icons.visibility_off_outlined : Icons.visibility_outlined,

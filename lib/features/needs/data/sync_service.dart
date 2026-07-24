@@ -2,17 +2,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'offline_storage_service.dart';
 import '../../auth/data/needs_repository.dart';
 
+enum OfflineSyncResult { synced, noPendingNeeds, failed }
+
 class SyncService {
   final OfflineStorageService _offlineStorage;
   final NeedsRepository _needsRepository;
 
   SyncService(this._offlineStorage, this._needsRepository);
 
-  Future<bool> syncOfflineNeeds() async {
+  Future<OfflineSyncResult> syncOfflineNeeds() async {
     final pendingNeeds = await _offlineStorage.getPendingNeeds();
 
     if (pendingNeeds.isEmpty) {
-      return false;
+      return OfflineSyncResult.noPendingNeeds;
     }
 
     try {
@@ -21,9 +23,9 @@ class SyncService {
       }
 
       await _offlineStorage.clearPendingNeeds();
-      return true;
+      return OfflineSyncResult.synced;
     } catch (e) {
-      return false;
+      return OfflineSyncResult.failed;
     }
   }
 }

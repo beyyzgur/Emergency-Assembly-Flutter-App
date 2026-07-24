@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 
+import 'core/locale/locale_provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/splash_overlay.dart';
+import 'l10n/l10n.dart';
 import 'routing/app_router.dart';
 import 'features/map/presentation/providers/assembly_areas_provider.dart';
 
@@ -119,6 +121,9 @@ class _MyAppState extends ConsumerState<MyApp> {
       title: 'ATİS',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      locale: ref.watch(localeProvider),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
       builder: (context, child) => Stack(
         children: [

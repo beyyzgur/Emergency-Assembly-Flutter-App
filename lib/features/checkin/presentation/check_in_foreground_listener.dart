@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 import '../data/check_in_controller.dart';
 import '../domain/check_in_state.dart';
 
@@ -92,11 +93,11 @@ class _CheckInForegroundListenerState
               color: AppColors.primary,
               size: 34,
             ),
-            title: const Text('Durum kontrolü'),
+            title: Text(context.l10n.statusCheckDialogTitle),
             content: Text(
               state.unansweredCount == 0
-                  ? 'Yol durumun nedir? Güvenliğin için kısa bir bilgi paylaş.'
-                  : '${state.unansweredCount}. yanıtsız kontrol kaydedildi. Lütfen durumunu paylaş.',
+                  ? context.l10n.statusCheckPrompt
+                  : context.l10n.unansweredStatusPrompt(state.unansweredCount),
             ),
             actions: [
               TextButton(
@@ -104,9 +105,9 @@ class _CheckInForegroundListenerState
                   ref.read(checkInControllerProvider.notifier).stop();
                   Navigator.of(dialogContext).pop();
                 },
-                child: const Text(
-                  'Durdur',
-                  style: TextStyle(color: AppColors.far),
+                child: Text(
+                  context.l10n.stop,
+                  style: const TextStyle(color: AppColors.far),
                 ),
               ),
               OutlinedButton(
@@ -114,18 +115,25 @@ class _CheckInForegroundListenerState
                   ref.read(checkInControllerProvider.notifier).markArrived();
                   Navigator.of(dialogContext).pop();
                 },
-                child: const Text('Vardım'),
+                child: Text(context.l10n.arrived),
               ),
               FilledButton(
                 onPressed: () {
                   ref.read(checkInControllerProvider.notifier).answerOnTheWay();
                   Navigator.of(dialogContext).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(context.l10n.onTheWayReported),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
                 ),
-                child: const Text('Yoldayım'),
+                child: Text(context.l10n.onTheWay),
               ),
             ],
           ),
@@ -159,10 +167,8 @@ class _CheckInForegroundListenerState
           color: AppColors.far,
           size: 38,
         ),
-        title: const Text('Check-in durduruldu'),
-        content: const Text(
-          '3 durum kontrolü yanıtsız kaldığı için check-in sonlandırıldı. Yeni bir check-in başlatabilirsin.',
-        ),
+        title: Text(context.l10n.checkInStoppedDialog),
+        content: Text(context.l10n.checkInStoppedDialogMessage),
         actions: [
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(),
@@ -170,7 +176,7 @@ class _CheckInForegroundListenerState
               backgroundColor: AppColors.primary,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Tamam'),
+            child: Text(context.l10n.ok),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'add_need_screen.dart';
 import '../data/sync_service.dart';
 import '../domain/need_model.dart'; // Düzenleme işlemi için modeli import ettik
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
 
 class NeedsScreen extends ConsumerWidget {
   const NeedsScreen({super.key});
@@ -40,6 +41,36 @@ class NeedsScreen extends ConsumerWidget {
     }
   }
 
+  String _categoryLabel(BuildContext context, String category) {
+    switch (category) {
+      case 'Su':
+        return context.l10n.categoryWater;
+      case 'Erzak':
+        return context.l10n.categoryFood;
+      case 'Barınma':
+        return context.l10n.categoryShelter;
+      case 'Sağlık':
+        return context.l10n.categoryHealth;
+      default:
+        return context.l10n.categoryOther;
+    }
+  }
+
+  String _urgencyLabel(BuildContext context, String urgency) {
+    switch (urgency) {
+      case 'Düşük':
+        return context.l10n.urgencyLow;
+      case 'Orta':
+        return context.l10n.urgencyMedium;
+      case 'Yüksek':
+        return context.l10n.urgencyHigh;
+      case 'Kritik':
+        return context.l10n.urgencyCritical;
+      default:
+        return context.l10n.unknownUrgency;
+    }
+  }
+
   String _formatDate(DateTime date) {
     final day = date.day.toString().padLeft(2, '0');
     final month = date.month.toString().padLeft(2, '0');
@@ -53,23 +84,23 @@ class NeedsScreen extends ConsumerWidget {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
             SizedBox(width: 8),
-            Text('İhtiyacı Sil'),
+            Text(context.l10n.deleteNeed),
           ],
         ),
-        content: const Text(
-          'Bu ihtiyacınız karşılandı mı veya ilanı sistemden tamamen silmek istediğinize emin misiniz?',
-          style: TextStyle(fontSize: 15),
+        content: Text(
+          context.l10n.deleteNeedConfirmation,
+          style: const TextStyle(fontSize: 15),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              'İptal',
-              style: TextStyle(color: Colors.grey, fontSize: 16),
+            child: Text(
+              context.l10n.cancel,
+              style: const TextStyle(color: Colors.grey, fontSize: 16),
             ),
           ),
           ElevatedButton(
@@ -83,7 +114,7 @@ class NeedsScreen extends ConsumerWidget {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: const Text('İhtiyaç kaydı başarıyla silindi. ✔️'),
+                    content: Text(context.l10n.needDeleted),
                     backgroundColor: Colors.green.shade700,
                     behavior: SnackBarBehavior.floating,
                   ),
@@ -97,7 +128,7 @@ class NeedsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Evet, Sil'),
+            child: Text(context.l10n.confirmDelete),
           ),
         ],
       ),
@@ -105,22 +136,30 @@ class NeedsScreen extends ConsumerWidget {
   }
 
   Future<void> _syncOffline(BuildContext context, WidgetRef ref) async {
-    final isSuccess = await ref.read(syncServiceProvider).syncOfflineNeeds();
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isSuccess
-                ? 'Tüm veriler başarıyla buluta aktarıldı! 🚀'
-                : 'Aktarılacak veri yok veya bağlantı hatası.',
-          ),
-          backgroundColor: isSuccess
-              ? Colors.green.shade800
-              : Colors.orange.shade800,
-          behavior: SnackBarBehavior.floating,
+    final result = await ref.read(syncServiceProvider).syncOfflineNeeds();
+
+    // Kullanıcının aktarılmayı bekleyen offline kaydı yoksa yenileme sessiz
+    // tamamlanır. Bu normal bir durumdur ve hata mesajı gösterilmemelidir.
+    if (!context.mounted || result == OfflineSyncResult.noPendingNeeds) return;
+
+    final isSuccess = result == OfflineSyncResult.synced;
+    final backgroundColor = isSuccess
+        ? Colors.green.shade800
+        : const Color(0xFFB3E5FC);
+    final textColor = isSuccess ? Colors.white : AppColors.primary;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          isSuccess
+              ? context.l10n.offlineSyncSuccess
+              : context.l10n.offlineSyncFailure,
+          style: TextStyle(color: textColor),
         ),
-      );
-    }
+        backgroundColor: backgroundColor,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -129,9 +168,12 @@ class NeedsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          "Afet Çantam",
-          style: TextStyle(fontWeight: FontWeight.w600, letterSpacing: 0.5),
+        title: Text(
+          context.l10n.needsBag,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -144,7 +186,7 @@ class NeedsScreen extends ConsumerWidget {
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add),
-        label: const Text('İhtiyaç Ekle'),
+        label: Text(context.l10n.addNeed),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
@@ -167,7 +209,7 @@ class NeedsScreen extends ConsumerWidget {
                     color: Colors.red.shade300,
                   ),
                   const SizedBox(height: 16),
-                  const Text('Veriler çekilirken bir hata oluştu.'),
+                  Text(context.l10n.needsLoadError),
                 ],
               ),
             );
@@ -193,7 +235,7 @@ class NeedsScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Henüz bir ihtiyaç kaydedilmemiş.',
+                          context.l10n.noNeedsYet,
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey.shade600,
@@ -218,10 +260,10 @@ class NeedsScreen extends ConsumerWidget {
                 final doc = docs[index];
                 final data = doc.data() as Map<String, dynamic>;
 
-                final title = data['title'] ?? 'Başlıksız';
-                final desc = data['description'] ?? 'Açıklama yok';
+                final title = data['title'] ?? context.l10n.untitledNeed;
+                final desc = data['description'] ?? context.l10n.noDescription;
                 final category = data['category'] ?? 'Diğer';
-                final urgency = data['urgency'] ?? 'Bilinmiyor';
+                final urgency = data['urgency'] ?? '';
                 final peopleCount = data['peopleCount'] ?? 1;
 
                 final reporterId = data['reporterId'] as String?;
@@ -242,6 +284,8 @@ class NeedsScreen extends ConsumerWidget {
 
                 final urgencyColor = _getUrgencyColor(urgency);
                 final categoryIcon = _getCategoryIcon(category);
+                final categoryLabel = _categoryLabel(context, category);
+                final urgencyLabel = _urgencyLabel(context, urgency);
 
                 return Container(
                   margin: const EdgeInsets.only(bottom: 10),
@@ -318,7 +362,7 @@ class NeedsScreen extends ConsumerWidget {
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Text(
-                                    urgency,
+                                    urgencyLabel,
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 12,
@@ -355,7 +399,7 @@ class NeedsScreen extends ConsumerWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      category,
+                                      categoryLabel,
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: Colors.grey.shade600,
@@ -373,7 +417,7 @@ class NeedsScreen extends ConsumerWidget {
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
-                                      '$peopleCount Kişi',
+                                      context.l10n.people(peopleCount),
                                       style: TextStyle(
                                         fontSize: 13,
                                         color: Colors.blue.shade700,
@@ -396,7 +440,7 @@ class NeedsScreen extends ConsumerWidget {
                                       color: Colors.blue.shade600,
                                       size: 22,
                                     ),
-                                    tooltip: 'Düzenle',
+                                    tooltip: context.l10n.edit,
                                     onPressed: () {
                                       final existingNeed = NeedModel.fromJson(
                                         data,
@@ -418,7 +462,7 @@ class NeedsScreen extends ConsumerWidget {
                                       color: Colors.red.shade400,
                                       size: 22,
                                     ),
-                                    tooltip: 'Sil',
+                                    tooltip: context.l10n.delete,
                                     onPressed: () =>
                                         _showDeleteDialog(context, doc.id),
                                   ),
