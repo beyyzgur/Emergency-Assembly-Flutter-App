@@ -7,11 +7,13 @@ class MapControls extends StatelessWidget {
     required this.onZoomIn,
     required this.onZoomOut,
     required this.onMyLocation,
+    this.onReturnToPoint,
   });
 
   final VoidCallback onZoomIn;
   final VoidCallback onZoomOut;
   final VoidCallback onMyLocation;
+  final VoidCallback? onReturnToPoint;
 
   @override
   Widget build(BuildContext context) {
@@ -23,15 +25,29 @@ class MapControls extends StatelessWidget {
         _button('zoomOut', Icons.remove, onZoomOut),
         const SizedBox(height: 8),
         _button('myLocation', Icons.my_location, onMyLocation),
+        if (onReturnToPoint != null) ...[
+          const SizedBox(height: 8),
+          _button(
+            'returnToPoint',
+            Icons.pin_drop,
+            onReturnToPoint!,
+            foreground: AppColors.accent,
+          ),
+        ],
       ],
     );
   }
 
-  Widget _button(String tag, IconData icon, VoidCallback onPressed) {
+  Widget _button(
+    String tag,
+    IconData icon,
+    VoidCallback onPressed, {
+    Color? foreground,
+  }) {
     return FloatingActionButton.small(
       heroTag: tag,
       backgroundColor: Colors.white,
-      foregroundColor: AppColors.primary,
+      foregroundColor: foreground ?? AppColors.primary,
       elevation: 2,
       onPressed: onPressed,
       child: Icon(icon),
