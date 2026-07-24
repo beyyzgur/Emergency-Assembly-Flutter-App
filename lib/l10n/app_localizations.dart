@@ -767,7 +767,7 @@ abstract class AppLocalizations {
   /// No description provided for @needsBag.
   ///
   /// In en, this message translates to:
-  /// **'My emergency kit'**
+  /// **'My Emergency Kit'**
   String get needsBag;
 
   /// No description provided for @addNeed.
@@ -869,7 +869,7 @@ abstract class AppLocalizations {
   /// No description provided for @mapTitle.
   ///
   /// In en, this message translates to:
-  /// **'Emergency assembly map'**
+  /// **'Emergency Assembly Map'**
   String get mapTitle;
 
   /// No description provided for @nearestAreas.
@@ -971,8 +971,158 @@ abstract class AppLocalizations {
   /// No description provided for @mapLayerOpenStreetMap.
   ///
   /// In en, this message translates to:
-  /// **'OpenStreetMap'**
+  /// **'OSM'**
   String get mapLayerOpenStreetMap;
+
+  /// No description provided for @language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get language;
+
+  /// No description provided for @directions.
+  ///
+  /// In en, this message translates to:
+  /// **'Directions'**
+  String get directions;
+
+  /// No description provided for @routeOrigin.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get routeOrigin;
+
+  /// No description provided for @routeDestination.
+  ///
+  /// In en, this message translates to:
+  /// **'Destination'**
+  String get routeDestination;
+
+  /// No description provided for @startRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get startRoute;
+
+  /// No description provided for @routeCalculating.
+  ///
+  /// In en, this message translates to:
+  /// **'Calculating route...'**
+  String get routeCalculating;
+
+  /// No description provided for @routeUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Route unavailable, showing straight line.'**
+  String get routeUnavailable;
+
+  /// No description provided for @routePreviewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Route preview — start must be GPS for live tracking'**
+  String get routePreviewHint;
+
+  /// No description provided for @closeRoute.
+  ///
+  /// In en, this message translates to:
+  /// **'Close route'**
+  String get closeRoute;
+
+  /// No description provided for @nearerAreaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a closer area'**
+  String get nearerAreaTitle;
+
+  /// No description provided for @nearerAreaBody.
+  ///
+  /// In en, this message translates to:
+  /// **'There is a closer assembly area about {distance} away. Would you like to see it?'**
+  String nearerAreaBody(Object distance);
+
+  /// No description provided for @showNearer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show nearer'**
+  String get showNearer;
+
+  /// No description provided for @arrivedMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'🎉 You have arrived at the assembly area.'**
+  String get arrivedMessage;
+
+  /// No description provided for @myLocationGps.
+  ///
+  /// In en, this message translates to:
+  /// **'My location (GPS)'**
+  String get myLocationGps;
+
+  /// No description provided for @selectDistrictAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select district'**
+  String get selectDistrictAction;
+
+  /// No description provided for @pickOnMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick on map'**
+  String get pickOnMap;
+
+  /// No description provided for @tapMapForStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap the map to set the start'**
+  String get tapMapForStart;
+
+  /// No description provided for @manualPointLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Point selected on map'**
+  String get manualPointLabel;
+
+  /// No description provided for @selectedPoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Selected point'**
+  String get selectedPoint;
+
+  /// No description provided for @routeModeWalking.
+  ///
+  /// In en, this message translates to:
+  /// **'Walking'**
+  String get routeModeWalking;
+
+  /// No description provided for @routeModeDriving.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving'**
+  String get routeModeDriving;
+
+  /// No description provided for @unitMinuteShort.
+  ///
+  /// In en, this message translates to:
+  /// **'min'**
+  String get unitMinuteShort;
+
+  /// No description provided for @unitHourShort.
+  ///
+  /// In en, this message translates to:
+  /// **'h'**
+  String get unitHourShort;
+
+  /// No description provided for @checkInStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Check-in started'**
+  String get checkInStarted;
+
+  /// No description provided for @onTheWayReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Your on-the-way status was reported'**
+  String get onTheWayReported;
 }
 
 class _AppLocalizationsDelegate

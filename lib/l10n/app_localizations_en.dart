@@ -370,7 +370,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get urgencyCritical => 'Critical';
 
   @override
-  String get needsBag => 'My emergency kit';
+  String get needsBag => 'My Emergency Kit';
 
   @override
   String get addNeed => 'Add need';
@@ -432,7 +432,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
-  String get mapTitle => 'Emergency assembly map';
+  String get mapTitle => 'Emergency Assembly Map';
 
   @override
   String get nearestAreas => 'Nearest assembly areas';
@@ -488,5 +488,83 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mapLayerHybrid => 'Hybrid';
 
   @override
-  String get mapLayerOpenStreetMap => 'OpenStreetMap';
+  String get mapLayerOpenStreetMap => 'OSM';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get directions => 'Directions';
+
+  @override
+  String get routeOrigin => 'Start';
+
+  @override
+  String get routeDestination => 'Destination';
+
+  @override
+  String get startRoute => 'Start';
+
+  @override
+  String get routeCalculating => 'Calculating route...';
+
+  @override
+  String get routeUnavailable => 'Route unavailable, showing straight line.';
+
+  @override
+  String get routePreviewHint =>
+      'Route preview — start must be GPS for live tracking';
+
+  @override
+  String get closeRoute => 'Close route';
+
+  @override
+  String get nearerAreaTitle => 'There is a closer area';
+
+  @override
+  String nearerAreaBody(Object distance) {
+    return 'There is a closer assembly area about $distance away. Would you like to see it?';
+  }
+
+  @override
+  String get showNearer => 'Show nearer';
+
+  @override
+  String get arrivedMessage => '🎉 You have arrived at the assembly area.';
+
+  @override
+  String get myLocationGps => 'My location (GPS)';
+
+  @override
+  String get selectDistrictAction => 'Select district';
+
+  @override
+  String get pickOnMap => 'Pick on map';
+
+  @override
+  String get tapMapForStart => 'Tap the map to set the start';
+
+  @override
+  String get manualPointLabel => 'Point selected on map';
+
+  @override
+  String get selectedPoint => 'Selected point';
+
+  @override
+  String get routeModeWalking => 'Walking';
+
+  @override
+  String get routeModeDriving => 'Driving';
+
+  @override
+  String get unitMinuteShort => 'min';
+
+  @override
+  String get unitHourShort => 'h';
+
+  @override
+  String get checkInStarted => 'Check-in started';
+
+  @override
+  String get onTheWayReported => 'Your on-the-way status was reported';
 }

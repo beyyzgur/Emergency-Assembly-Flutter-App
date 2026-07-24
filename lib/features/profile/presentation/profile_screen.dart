@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/locale/locale_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/l10n.dart';
 import '../../auth/data/auth_service.dart';
@@ -39,6 +40,26 @@ class ProfileScreen extends ConsumerWidget {
             leading: const Icon(Icons.info_outline, color: AppColors.primary),
             title: Text(context.l10n.appFullName),
             subtitle: Text(context.l10n.version('1.0.0')),
+          ),
+          const Divider(),
+
+          _sectionTitle(context.l10n.language),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+            child: SegmentedButton<String>(
+              segments: const [
+                ButtonSegment(value: 'tr', label: Text('Türkçe')),
+                ButtonSegment(value: 'en', label: Text('English')),
+              ],
+              selected: {
+                ref.watch(localeProvider)?.languageCode ??
+                    Localizations.localeOf(context).languageCode,
+              },
+              showSelectedIcon: false,
+              onSelectionChanged: (selection) => ref
+                  .read(localeProvider.notifier)
+                  .setLocale(Locale(selection.first)),
+            ),
           ),
           const Divider(),
 

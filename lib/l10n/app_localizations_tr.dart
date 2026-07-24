@@ -484,5 +484,83 @@ class AppLocalizationsTr extends AppLocalizations {
   String get mapLayerHybrid => 'Hibrit';
 
   @override
-  String get mapLayerOpenStreetMap => 'OpenStreetMap';
+  String get mapLayerOpenStreetMap => 'OSM';
+
+  @override
+  String get language => 'Dil';
+
+  @override
+  String get directions => 'Yol Tarifi';
+
+  @override
+  String get routeOrigin => 'Başlangıç';
+
+  @override
+  String get routeDestination => 'Hedef';
+
+  @override
+  String get startRoute => 'Başlat';
+
+  @override
+  String get routeCalculating => 'Rota hesaplanıyor...';
+
+  @override
+  String get routeUnavailable => 'Rota alınamadı, düz çizgi gösteriliyor.';
+
+  @override
+  String get routePreviewHint =>
+      'Rota önizleme — canlı takip için başlangıç GPS olmalı';
+
+  @override
+  String get closeRoute => 'Rotayı kapat';
+
+  @override
+  String get nearerAreaTitle => 'Daha yakın bir alan var';
+
+  @override
+  String nearerAreaBody(Object distance) {
+    return 'Yaklaşık $distance uzaklıkta daha yakın bir toplanma alanı var. Onu görmek ister misiniz?';
+  }
+
+  @override
+  String get showNearer => 'Yakını Gör';
+
+  @override
+  String get arrivedMessage => '🎉 Vardınız! Toplanma alanına ulaştınız.';
+
+  @override
+  String get myLocationGps => 'Konumum (GPS)';
+
+  @override
+  String get selectDistrictAction => 'İlçe seç';
+
+  @override
+  String get pickOnMap => 'Haritadan seç';
+
+  @override
+  String get tapMapForStart => 'Başlangıç için haritaya dokunun';
+
+  @override
+  String get manualPointLabel => 'Haritadan seçilen nokta';
+
+  @override
+  String get selectedPoint => 'Seçilen nokta';
+
+  @override
+  String get routeModeWalking => 'Yürüyüş';
+
+  @override
+  String get routeModeDriving => 'Araç';
+
+  @override
+  String get unitMinuteShort => 'dk';
+
+  @override
+  String get unitHourShort => 'sa';
+
+  @override
+  String get checkInStarted => 'Check-in başladı';
+
+  @override
+  String get onTheWayReported => 'Yolda olduğunuz bildirildi';
 }

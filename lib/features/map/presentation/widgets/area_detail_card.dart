@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/l10n.dart';
 import '../../domain/assembly_area.dart';
 import '../../utils/route_format.dart';
 
@@ -60,7 +61,7 @@ class AreaDetailCard extends StatelessWidget {
                   icon: const Icon(Icons.close),
                   onPressed: onClose,
                   visualDensity: VisualDensity.compact,
-                  tooltip: 'Kapat',
+                  tooltip: context.l10n.close,
                 ),
               ],
             ),
@@ -69,7 +70,7 @@ class AreaDetailCard extends StatelessWidget {
               spacing: 18,
               runSpacing: 8,
               children: [
-                _info(Icons.groups, '${area.capacity} kişi kapasiteli'),
+                _info(Icons.groups, context.l10n.capacity(area.capacity)),
                 if (area.type.isNotEmpty)
                   _info(Icons.category_outlined, area.type),
                 if (area.district.isNotEmpty)
@@ -86,12 +87,12 @@ class AreaDetailCard extends StatelessWidget {
                   const SizedBox(width: 18),
                   _metric(
                     Icons.directions_walk,
-                    '~${formatDuration(estimateSeconds(meters, kWalkingSpeedMps))}',
+                    '~${formatDuration(estimateSeconds(meters, kWalkingSpeedMps), context.l10n)}',
                   ),
                   const SizedBox(width: 18),
                   _metric(
                     Icons.directions_car,
-                    '~${formatDuration(estimateSeconds(meters, kDrivingSpeedMps))}',
+                    '~${formatDuration(estimateSeconds(meters, kDrivingSpeedMps), context.l10n)}',
                   ),
                 ],
               ),
@@ -101,7 +102,7 @@ class AreaDetailCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onDirections,
                   icon: const Icon(Icons.directions),
-                  label: const Text('Yol Tarifi'),
+                  label: Text(context.l10n.directions),
                 ),
               ),
             ],

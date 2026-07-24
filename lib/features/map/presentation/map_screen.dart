@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../core/config/districts.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/utils/geo.dart';
+import '../../../l10n/l10n.dart';
 import '../domain/assembly_area.dart';
 import '../domain/route_mode.dart';
 import '../utils/distance_color.dart';
@@ -191,10 +192,10 @@ class _MapScreenState extends ConsumerState<MapScreen>
     final manualPoint = ref.watch(manualPointProvider);
     final canNavigate = ref.watch(isGpsOriginProvider) && !swapped;
     final originLabel = manualPoint != null
-        ? 'Haritadan seçilen nokta'
+        ? context.l10n.manualPointLabel
         : manualDistrict != null
         ? manualDistrict.name
-        : 'Konumum (GPS)';
+        : context.l10n.myLocationGps;
     final headerFrom = swapped ? (selectedArea?.name ?? '') : originLabel;
     final headerTo = swapped ? originLabel : (selectedArea?.name ?? '');
 
@@ -241,11 +242,11 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Afet Toplanma Haritası'),
+        title: Text(context.l10n.mapTitle),
         actions: [
           IconButton(
             icon: const Icon(Icons.format_list_bulleted),
-            tooltip: 'En yakın alanlar',
+            tooltip: context.l10n.nearestAreas,
             onPressed: showNearestAreas,
           ),
         ],
@@ -372,7 +373,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                       child: _locationMarker(
                         manualDistrict != null
                             ? manualDistrict.name
-                            : (manualPoint != null ? 'Seçilen nokta' : null),
+                            : (manualPoint != null
+                                  ? context.l10n.selectedPoint
+                                  : null),
                         showChip: true,
                       ),
                     ),
@@ -543,31 +546,31 @@ class _MapScreenState extends ConsumerState<MapScreen>
       margin: EdgeInsets.zero,
       child: ListTile(
         leading: const Icon(Icons.touch_app, color: AppColors.accent),
-        title: const Text('Başlangıç için haritaya dokunun'),
+        title: Text(context.l10n.tapMapForStart),
         trailing: TextButton(
           onPressed: () => setState(() => pickingOrigin = false),
-          child: const Text('Vazgeç'),
+          child: Text(context.l10n.cancel),
         ),
       ),
     ),
   );
 
-  Widget _areasLoadingBadge() => const Positioned(
+  Widget _areasLoadingBadge() => Positioned(
     top: 16,
     left: 16,
     child: Card(
       child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            const SizedBox(
               width: 16,
               height: 16,
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
-            SizedBox(width: 10),
-            Text('Toplanma alanları yükleniyor...'),
+            const SizedBox(width: 10),
+            Text(context.l10n.loadingAssemblyAreas),
           ],
         ),
       ),
@@ -604,8 +607,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
       margin: EdgeInsets.zero,
       child: ListTile(
         leading: const Icon(Icons.location_off),
-        title: const Text('Konum alınamadı'),
-        subtitle: const Text('Bulunduğunuz ilçeyi seçin'),
+        title: Text(context.l10n.locationUnavailable),
+        subtitle: Text(context.l10n.selectDistrict),
         trailing: const Icon(Icons.chevron_right),
         onTap: () =>
             showDistrictPicker(context, onPickFromMap: startPickingOrigin),
@@ -627,7 +630,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
   Widget _locationMarker(String? districtName, {bool showChip = true}) {
     final isManual = districtName != null;
     final pinColor = isManual ? AppColors.primary : AppColors.userLocation;
-    final label = districtName ?? 'Konumum';
+    final label = districtName ?? context.l10n.myLocation;
 
     return Column(
       mainAxisSize: MainAxisSize.min,

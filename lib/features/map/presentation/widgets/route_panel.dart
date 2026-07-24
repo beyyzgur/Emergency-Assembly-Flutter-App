@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/l10n.dart';
 import '../../domain/route_mode.dart';
 import '../../utils/route_format.dart';
 import '../providers/route_provider.dart';
@@ -56,27 +57,30 @@ class RoutePanel extends ConsumerWidget {
                     children: [
                       _stat(Icons.straighten, formatDistance(r.distanceMeters)),
                       const SizedBox(width: 22),
-                      _stat(Icons.schedule, formatDuration(r.durationSeconds)),
+                      _stat(
+                        Icons.schedule,
+                        formatDuration(r.durationSeconds, context.l10n),
+                      ),
                     ],
                   ),
-                  loading: () => const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 4),
+                  loading: () => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        SizedBox(
+                        const SizedBox(
                           width: 15,
                           height: 15,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
-                        SizedBox(width: 10),
-                        Text('Rota hesaplanıyor...'),
+                        const SizedBox(width: 10),
+                        Text(context.l10n.routeCalculating),
                       ],
                     ),
                   ),
-                  error: (_, _) => const Text(
-                    'Rota alınamadı, düz çizgi gösteriliyor.',
-                    style: TextStyle(fontSize: 13),
+                  error: (_, _) => Text(
+                    context.l10n.routeUnavailable,
+                    style: const TextStyle(fontSize: 13),
                   ),
                 ),
                 const SizedBox(height: 14),
@@ -91,6 +95,7 @@ class RoutePanel extends ConsumerWidget {
                     children: [
                       Expanded(
                         child: _modeChip(
+                          context,
                           ref,
                           RouteMode.walking,
                           mode,
@@ -100,6 +105,7 @@ class RoutePanel extends ConsumerWidget {
                       ),
                       Expanded(
                         child: _modeChip(
+                          context,
                           ref,
                           RouteMode.driving,
                           mode,
@@ -121,7 +127,7 @@ class RoutePanel extends ConsumerWidget {
                         backgroundColor: AppColors.far,
                       ),
                       icon: const Icon(Icons.stop),
-                      label: const Text('Durdur'),
+                      label: Text(context.l10n.stop),
                     ),
                   )
                 else if (canNavigate)
@@ -130,7 +136,7 @@ class RoutePanel extends ConsumerWidget {
                     child: FilledButton.icon(
                       onPressed: onStart,
                       icon: const Icon(Icons.navigation),
-                      label: const Text('Başlat'),
+                      label: Text(context.l10n.startRoute),
                     ),
                   )
                 else
@@ -145,7 +151,7 @@ class RoutePanel extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Flexible(
                         child: Text(
-                          'Rota önizleme — canlı takip için başlangıç GPS olmalı',
+                          context.l10n.routePreviewHint,
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -164,7 +170,7 @@ class RoutePanel extends ConsumerWidget {
                 onPressed: onClose,
                 icon: const Icon(Icons.close),
                 visualDensity: VisualDensity.compact,
-                tooltip: 'Rotayı kapat',
+                tooltip: context.l10n.closeRoute,
               ),
             ),
           ],
@@ -186,6 +192,7 @@ class RoutePanel extends ConsumerWidget {
   );
 
   Widget _modeChip(
+    BuildContext context,
     WidgetRef ref,
     RouteMode chip,
     RouteMode current,
@@ -216,7 +223,9 @@ class RoutePanel extends ConsumerWidget {
             Icon(icon, size: 18, color: fg),
             const SizedBox(width: 6),
             Text(
-              chip.label,
+              chip == RouteMode.walking
+                  ? context.l10n.routeModeWalking
+                  : context.l10n.routeModeDriving,
               style: TextStyle(
                 color: fg,
                 fontWeight: FontWeight.w600,
