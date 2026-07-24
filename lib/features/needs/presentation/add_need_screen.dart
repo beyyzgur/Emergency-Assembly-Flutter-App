@@ -191,6 +191,10 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
     }
   }
 
+  void _dismissKeyboard() {
+    FocusManager.instance.primaryFocus?.unfocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.existingNeed != null;
@@ -212,176 +216,182 @@ class _AddNeedScreenState extends ConsumerState<AddNeedScreen> {
         elevation: 0,
       ),
       body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              Padding(
-                padding: EdgeInsets.only(left: 8, bottom: 8),
-                child: Text(
-                  context.l10n.basicInformation,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueGrey,
+        child: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: _dismissKeyboard,
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                Padding(
+                  padding: EdgeInsets.only(left: 8, bottom: 8),
+                  child: Text(
+                    context.l10n.basicInformation,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey,
+                    ),
                   ),
                 ),
-              ),
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: _customInputDecoration(
-                          context.l10n.needTitle,
-                          Icons.title,
-                        ),
-                        validator: (v) =>
-                            v!.isEmpty ? context.l10n.needTitleRequired : null,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _descController,
-                        maxLines: 3,
-                        decoration: _customInputDecoration(
-                          context.l10n.detailedDescription,
-                          Icons.description,
-                        ),
-                        validator: (v) => v!.isEmpty
-                            ? context.l10n.needDescriptionRequired
-                            : null,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Padding(
-                padding: EdgeInsets.only(left: 8, bottom: 8),
-                child: Text(
-                  context.l10n.scopeAndUrgency,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueGrey,
-                  ),
-                ),
-              ),
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _selectedCategory,
-                              decoration: _customInputDecoration(
-                                context.l10n.category,
-                                Icons.category,
-                              ),
-                              items: _categories
-                                  .map(
-                                    (c) => DropdownMenuItem(
-                                      value: c,
-                                      child: Text(_categoryLabel(context, c)),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (v) =>
-                                  setState(() => _selectedCategory = v!),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: TextFormField(
-                              controller: _peopleCountController,
-                              keyboardType: TextInputType.number,
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                              ],
-                              decoration: _customInputDecoration(
-                                context.l10n.peopleCount,
-                                Icons.groups,
-                              ),
-                              validator: (v) => v!.isEmpty
-                                  ? context.l10n.peopleCountRequired
-                                  : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        initialValue: _selectedUrgency,
-                        decoration: _customInputDecoration(
-                          context.l10n.urgencyStatus,
-                          Icons.warning_amber_rounded,
-                        ),
-                        items: _urgencies
-                            .map(
-                              (u) => DropdownMenuItem(
-                                value: u,
-                                child: Text(_urgencyLabel(context, u)),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (v) => setState(() => _selectedUrgency = v!),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton.icon(
-                onPressed: _isLoading ? null : _submitForm,
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : Icon(
-                        isEditing ? Icons.save_rounded : Icons.send_rounded,
-                        size: 24,
-                      ),
-                label: Text(
-                  _isLoading
-                      ? context.l10n.saving
-                      : (isEditing
-                            ? context.l10n.saveChanges
-                            : context.l10n.submitNeed),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue.shade700,
-                  foregroundColor: Colors.white,
+                Card(
+                  elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        TextFormField(
+                          controller: _titleController,
+                          decoration: _customInputDecoration(
+                            context.l10n.needTitle,
+                            Icons.title,
+                          ),
+                          validator: (v) => v!.isEmpty
+                              ? context.l10n.needTitleRequired
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _descController,
+                          maxLines: 3,
+                          decoration: _customInputDecoration(
+                            context.l10n.detailedDescription,
+                            Icons.description,
+                          ),
+                          validator: (v) => v!.isEmpty
+                              ? context.l10n.needDescriptionRequired
+                              : null,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Padding(
+                  padding: EdgeInsets.only(left: 8, bottom: 8),
+                  child: Text(
+                    context.l10n.scopeAndUrgency,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey,
+                    ),
+                  ),
+                ),
+                Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _selectedCategory,
+                                decoration: _customInputDecoration(
+                                  context.l10n.category,
+                                  Icons.category,
+                                ),
+                                items: _categories
+                                    .map(
+                                      (c) => DropdownMenuItem(
+                                        value: c,
+                                        child: Text(_categoryLabel(context, c)),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) =>
+                                    setState(() => _selectedCategory = v!),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _peopleCountController,
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                ],
+                                decoration: _customInputDecoration(
+                                  context.l10n.peopleCount,
+                                  Icons.groups,
+                                ),
+                                validator: (v) => v!.isEmpty
+                                    ? context.l10n.peopleCountRequired
+                                    : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedUrgency,
+                          decoration: _customInputDecoration(
+                            context.l10n.urgencyStatus,
+                            Icons.warning_amber_rounded,
+                          ),
+                          items: _urgencies
+                              .map(
+                                (u) => DropdownMenuItem(
+                                  value: u,
+                                  child: Text(_urgencyLabel(context, u)),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (v) =>
+                              setState(() => _selectedUrgency = v!),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _submitForm,
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Icon(
+                          isEditing ? Icons.save_rounded : Icons.send_rounded,
+                          size: 24,
+                        ),
+                  label: Text(
+                    _isLoading
+                        ? context.l10n.saving
+                        : (isEditing
+                              ? context.l10n.saveChanges
+                              : context.l10n.submitNeed),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    backgroundColor: Colors.blue.shade700,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
