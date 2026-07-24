@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../l10n/l10n.dart';
+import '../../checkin/data/check_in_controller.dart';
 import '../domain/assembly_area.dart';
 import '../domain/route_mode.dart';
 import '../utils/route_format.dart';
@@ -51,10 +53,9 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
     showDialog<void>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Daha yakın bir alan var'),
+        title: Text(context.l10n.nearerAreaTitle),
         content: Text(
-          'Yaklaşık ${formatDistance(nearerMeters)} uzaklıkta daha yakın bir '
-          'toplanma alanı var. Onu görmek ister misiniz?',
+          context.l10n.nearerAreaBody(formatDistance(nearerMeters)),
         ),
         actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
         actions: [
@@ -70,7 +71,7 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
                     Navigator.pop(ctx);
                     enterDirections(from, current);
                   },
-                  child: const Text('İptal'),
+                  child: Text(context.l10n.cancel),
                 ),
               ),
               const SizedBox(width: 12),
@@ -81,7 +82,7 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
                     ref.read(selectedAreaProvider.notifier).state = nearer;
                     animatedMove(nearer.center, 18);
                   },
-                  child: const Text('Yakını Gör'),
+                  child: Text(context.l10n.showNearer),
                 ),
               ),
             ],
@@ -94,16 +95,30 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
   void startNavigation(LatLng from, AssemblyArea area) {
     ref.read(routePhaseProvider.notifier).state = RoutePhase.navigating;
     arrived = false;
+    ref.read(checkInControllerProvider.notifier).start();
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.l10n.checkInStarted),
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    }
     final route = ref.read(routeProvider((from, area.center))).valueOrNull;
     fitToPoints(route?.points ?? [from, area.center]);
   }
 
   void stopNavigation() {
     ref.read(routePhaseProvider.notifier).state = RoutePhase.directions;
+    ref.read(checkInControllerProvider.notifier).stop();
     navPos = null;
   }
 
   void closeRoute() {
+    if (ref.read(routePhaseProvider) == RoutePhase.navigating) {
+      ref.read(checkInControllerProvider.notifier).stop();
+    }
     ref.read(routePhaseProvider.notifier).state = RoutePhase.idle;
     ref.read(routeModeProvider.notifier).state = RouteMode.walking;
     navPos = null;
@@ -114,11 +129,12 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
     if (arrived) return;
     arrived = true;
     ref.read(routePhaseProvider.notifier).state = RoutePhase.idle;
+    ref.read(checkInControllerProvider.notifier).markArrived();
     navPos = null;
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('🎉 Vardınız! Toplanma alanına ulaştınız.'),
+        SnackBar(
+          content: Text(context.l10n.arrivedMessage),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -137,7 +153,7 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
                 Icons.my_location,
                 color: AppColors.userLocation,
               ),
-              title: const Text('Konumum (GPS)'),
+              title: Text(context.l10n.myLocationGps),
               onTap: () {
                 Navigator.pop(ctx);
                 setOriginGps();
@@ -148,7 +164,7 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
                 Icons.location_city,
                 color: AppColors.primary,
               ),
-              title: const Text('İlçe seç'),
+              title: Text(context.l10n.selectDistrictAction),
               onTap: () {
                 Navigator.pop(ctx);
                 ref.read(manualPointProvider.notifier).state = null;
@@ -157,8 +173,8 @@ mixin RouteFlowMixin<W extends ConsumerStatefulWidget>
             ),
             ListTile(
               leading: const Icon(Icons.touch_app, color: AppColors.accent),
-              title: const Text('Haritadan seç'),
-              subtitle: const Text('Başlangıç için haritaya dokunun'),
+              title: Text(context.l10n.pickOnMap),
+              subtitle: Text(context.l10n.tapMapForStart),
               onTap: () {
                 Navigator.pop(ctx);
                 setState(() => pickingOrigin = true);

@@ -121,6 +121,13 @@ class _CheckInForegroundListenerState
                 onPressed: () {
                   ref.read(checkInControllerProvider.notifier).answerOnTheWay();
                   Navigator.of(dialogContext).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(context.l10n.onTheWayReported),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.primary,

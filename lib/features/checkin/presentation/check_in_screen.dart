@@ -264,7 +264,16 @@ class _ActiveActions extends StatelessWidget {
         SizedBox(
           height: 52,
           child: FilledButton.icon(
-            onPressed: controller.answerOnTheWay,
+            onPressed: () {
+              controller.answerOnTheWay();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(context.l10n.onTheWayReported),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            },
             icon: const Icon(Icons.directions_walk_rounded),
             label: Text(context.l10n.onTheWay),
             style: FilledButton.styleFrom(
